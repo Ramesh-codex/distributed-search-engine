@@ -211,6 +211,31 @@ relative to prose is an index/list page regardless of its content, and could
 be filtered or down-weighted before indexing rather than patched at ranking
 time.
 
+### Exact-title matches degrade as the corpus grows
+
+The query "solar system" returns the "Solar System" article at rank 4 on
+the 20K corpus. On the 100K corpus, run against the same ranker, it does not
+appear in the top 10 at all — crowded out by "Solar power"/"Solar energy"
+articles, several of which score within 0.7 of each other.
+
+Cause: `BM25Ranker` (`src/search/ranking/bm25.py`) scores title and body
+text identically — there's no field weighting, so a term appearing in the
+title carries exactly as much weight as the same term appearing once in
+running body text. A query that's *literally the title of the best answer*
+gets no credit for that. This doesn't show up at small corpus sizes because
+there are few enough competing documents that the right one still clears the
+bar; it degrades specifically as corpus size grows, because a bigger corpus
+supplies more documents that mention "solar" and "system"/"power"/"energy"
+somewhere in their body text at a similar term frequency — more weak
+competitors bunched at a similar score, any of which can outrank the exact
+match once enough of them exist.
+
+The standard remedy is BM25F: score title and body as separate fields with
+independent weights, so a title hit outweighs an equivalent body hit rather
+than tying with it. Not implemented — like the index-page pathology above,
+this is a ranking-model gap rather than a bug in the existing implementation
+of the model it does have.
+
 ### The stemmer's documented collisions
 
 `_stem` (`src/search/index/tokenizer.py`) can collapse two unrelated words

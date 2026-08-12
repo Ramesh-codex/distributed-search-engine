@@ -14,8 +14,8 @@ from search.storage.ondisk import OnDiskIndex, OnDiskIndexWriter
 from search.storage.wiki_loader import stream_articles
 
 DUMP = "data/dumps/simplewiki.xml.bz2"
-INDEX_DIR = "data/index20k"
-LIMIT = 20000
+INDEX_DIR = "data/index100k"
+LIMIT = 100000
 TRIALS = 300
 
 

@@ -26,26 +26,39 @@ flowchart TB
         Index --> Ranker[BM25Ranker<br/>RSJ IDF, tf saturation, length norm, heap top-K]
     end
 
-    Query([Query string]) --> Analyzer
-    Ranker --> Results([Top-K doc_ids + scores])
+    subgraph Serving["Serving — live path"]
+        UI[[Single-file HTML UI]] --> API[FastAPI app<br/>/search /stats /health]
+    end
 
-    subgraph Planned["Scaffolded, not yet built"]
-        Cache[[LRU cache]]
-        API[[FastAPI service]]
+    API --> Analyzer
+    Ranker --> API
+
+    subgraph Phase2["Phase 2 — built and benchmarked, not wired into Serving yet"]
+        Cache[[LRUCache / CachedRanker]]
+        Codec[[VByte postings codec]]
+        OnDisk[(OnDiskIndex, mmap'd)]
+    end
+
+    subgraph Planned["Still not built"]
         PG[(PostgreSQL)]
         Redis[(Redis)]
     end
 
     Ranker -.-> Cache
+    Index -. encode_postings .-> Codec
+    Codec -. decode_postings .-> OnDisk
     Index -.-> PG
     Cache -.-> Redis
-    Ranker -.-> API
 ```
 
-`search/cache` and `search/api` exist as empty packages — scaffolded for
-where a query cache and a FastAPI service layer go, not implemented yet.
-PostgreSQL and Redis are declared in the stack but nothing wires them to the
-index today; the current system runs entirely in-process, in memory.
+`search/api` is a working FastAPI service (`GET /search`, `/stats`, `/health`,
+plus the single-file HTML UI at `/`) that builds the in-memory index once at
+startup via a lifespan handler and never rebuilds it per request.
+`search/cache` and the on-disk mmap'd index (`search/storage/ondisk.py`)
+exist as built, independently-benchmarked components — see Phase 2 below —
+but neither is wired into the live API yet: `/search` still calls
+`BM25Ranker` directly against the in-memory index. PostgreSQL and Redis
+remain declared in the stack but unconnected to anything.
 
 ## Stack
 
@@ -164,7 +177,9 @@ diagram:
 - **Caching** — the same small set of high-df terms recurs across many
   queries; memoizing `document_frequency`/IDF, or caching hot query results
   outright, removes repeated full postings walks for exactly the terms
-  driving the tail. This is what `src/search/cache` is scaffolded for.
+  driving the tail. Built and measured in Phase 2 below — and the result
+  complicates this prediction: caching helps the median far more than it
+  helps the tail.
 - **Sharding** — splitting the corpus across N shards bounds worst-case
   postings length to roughly `total_df / N` per shard instead of letting it
   grow with the whole corpus, which is what keeps p99 from scaling with

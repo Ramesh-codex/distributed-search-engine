@@ -1,3 +1,5 @@
+import time
+
 import httpx
 import pytest
 
@@ -185,3 +187,140 @@ def test_coordinator_reads_shard_urls_from_env(monkeypatch):
 def test_coordinator_requires_shard_urls():
     with pytest.raises(ValueError):
         Coordinator(shard_urls=[])
+
+
+def test_coordinator_default_timeouts_split_connect_and_read():
+    coord = Coordinator(shard_urls=["http://shard-0"])
+    try:
+        assert coord._request_timeout.connect == pytest.approx(0.2)
+        assert coord._request_timeout.read == pytest.approx(2.0)
+    finally:
+        coord.close()
+
+
+def test_coordinator_timeouts_are_configurable():
+    coord = Coordinator(shard_urls=["http://shard-0"], connect_timeout=0.5, read_timeout=3.0)
+    try:
+        assert coord._request_timeout.connect == pytest.approx(0.5)
+        assert coord._request_timeout.read == pytest.approx(3.0)
+    finally:
+        coord.close()
+
+
+def test_coordinator_breaker_thresholds_are_configurable():
+    coord = Coordinator(
+        shard_urls=["http://shard-0"], breaker_failure_threshold=7, breaker_cooldown_seconds=42.0,
+    )
+    try:
+        breaker = coord._breakers["http://shard-0"]
+        assert breaker._failure_threshold == 7
+        assert breaker._cooldown_seconds == 42.0
+    finally:
+        coord.close()
+
+
+# --- Circuit breaker, wired through Coordinator -----------------------------
+#
+# CircuitBreaker's own state-machine transitions are covered in isolation by
+# test_circuit_breaker.py. These tests instead confirm Coordinator actually
+# wires a breaker in front of every shard call correctly: it opens from real
+# consecutive HTTP failures, an open breaker stops _query_shard from making
+# a request at all (not just from succeeding), and the half-open probe both
+# recovers and re-fails correctly through the real search() path.
+
+def _counting_flaky_transport(shard_rankers, flaky: str, healthy_after: int | None = None):
+    """`flaky` fails every request until `healthy_after` calls have been
+    made to it, then serves normally (None: always fails). Returns the
+    transport plus a per-shard call counter to assert against."""
+    call_counts = {name: 0 for name in shard_rankers}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        name = request.url.host
+        call_counts[name] += 1
+        if name == flaky and (healthy_after is None or call_counts[name] <= healthy_after):
+            return httpx.Response(503, json={"detail": f"{name} unavailable"})
+        shard, ranker = shard_rankers[name]
+        params = request.url.params
+        hits = ranker.search(params["q"], top_k=int(params.get("k", "10")))
+        body = [
+            {"doc_id": doc_id, "score": score, "title": shard.document(doc_id).title}
+            for doc_id, score in hits
+        ]
+        return httpx.Response(200, json=body)
+
+    return httpx.MockTransport(handler), call_counts
+
+
+def test_coordinator_breaker_opens_after_threshold_and_then_skips_the_shard(shard_rankers):
+    transport, call_counts = _counting_flaky_transport(shard_rankers, flaky="shard-1")
+    coord = Coordinator(
+        shard_urls=[_shard_url(n) for n in SHARD_NAMES],
+        client=httpx.Client(transport=transport),
+        breaker_failure_threshold=3,
+        breaker_cooldown_seconds=10.0,
+    )
+    try:
+        for _ in range(3):
+            out = coord.search("solar system", top_k=5)
+            assert out["degraded"] is True
+        assert call_counts["shard-1"] == 3
+        assert coord.breaker_stats[_shard_url("shard-1")]["state"] == "open"
+
+        # 4th call: breaker is open and the 10s cooldown hasn't elapsed, so
+        # shard-1 must be skipped without ever reaching the transport.
+        out = coord.search("solar system", top_k=5)
+        assert call_counts["shard-1"] == 3
+        assert out["shards_failed"] == [_shard_url("shard-1")]
+        assert out["degraded"] is True
+    finally:
+        coord.close()
+
+
+def test_coordinator_breaker_half_open_probe_closes_on_success(shard_rankers):
+    transport, call_counts = _counting_flaky_transport(shard_rankers, flaky="shard-1", healthy_after=2)
+    coord = Coordinator(
+        shard_urls=[_shard_url(n) for n in SHARD_NAMES],
+        client=httpx.Client(transport=transport),
+        breaker_failure_threshold=2,
+        breaker_cooldown_seconds=0.05,
+    )
+    try:
+        coord.search("solar system", top_k=5)
+        coord.search("solar system", top_k=5)
+        assert coord.breaker_stats[_shard_url("shard-1")]["state"] == "open"
+
+        time.sleep(0.1)  # let the cooldown elapse; shard-1 is "healthy" again by now
+
+        out = coord.search("solar system", top_k=5)
+        assert call_counts["shard-1"] == 3  # 2 failures + the half-open probe
+        assert out["degraded"] is False
+        assert coord.breaker_stats[_shard_url("shard-1")]["state"] == "closed"
+        assert coord.breaker_stats[_shard_url("shard-1")]["consecutive_failures"] == 0
+    finally:
+        coord.close()
+
+
+def test_coordinator_breaker_reopens_on_a_failed_probe(shard_rankers):
+    transport, call_counts = _counting_flaky_transport(shard_rankers, flaky="shard-1")  # never recovers
+    coord = Coordinator(
+        shard_urls=[_shard_url(n) for n in SHARD_NAMES],
+        client=httpx.Client(transport=transport),
+        breaker_failure_threshold=2,
+        breaker_cooldown_seconds=0.05,
+    )
+    try:
+        coord.search("solar system", top_k=5)
+        coord.search("solar system", top_k=5)
+        assert coord.breaker_stats[_shard_url("shard-1")]["state"] == "open"
+
+        time.sleep(0.1)
+        out = coord.search("solar system", top_k=5)  # the probe: still failing
+        assert call_counts["shard-1"] == 3
+        assert out["degraded"] is True
+        assert coord.breaker_stats[_shard_url("shard-1")]["state"] == "open"
+
+        # Immediately after: back within the fresh cooldown, no further request.
+        coord.search("solar system", top_k=5)
+        assert call_counts["shard-1"] == 3
+    finally:
+        coord.close()

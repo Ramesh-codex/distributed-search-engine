@@ -7,10 +7,23 @@ from pathlib import Path
 
 import httpx
 
+from search.distribution.circuit_breaker import CircuitBreaker, CircuitOpenError
 from search.distribution.shard_index import ShardIndex
 from search.ranking.bm25 import BM25Ranker
 
 DEFAULT_TIMEOUT_SECONDS = 5.0
+
+# A shard on the same network either answers in milliseconds or is not
+# there. Connect and read are split because they fail differently: a dead
+# host or a firewalled port hangs on connect, while a slow-but-alive shard
+# hangs on read -- collapsing both into one timeout means either the
+# healthy case has to tolerate the dead-host number, or the dead-host case
+# has to wait as long as a legitimately slow query is allowed to take.
+DEFAULT_CONNECT_TIMEOUT_SECONDS = 0.2
+DEFAULT_READ_TIMEOUT_SECONDS = 2.0
+
+DEFAULT_BREAKER_FAILURE_THRESHOLD = 3
+DEFAULT_BREAKER_COOLDOWN_SECONDS = 10.0
 
 
 class LocalCoordinator:
@@ -126,33 +139,85 @@ class Coordinator:
     afterward, because there is no local ShardIndex to look them up from
     once results are merged -- the whole point of going over HTTP is that
     the shard's data lives in another process.
+
+    A CircuitBreaker per shard URL sits in front of the HTTP call. Without
+    it, a genuinely down shard pays its full connect+read timeout on every
+    single query, forever -- the timeout bounds one request, not the
+    decision to keep sending them. After enough consecutive failures the
+    breaker opens and _query_shard raises immediately, no network call
+    attempted, until the cooldown elapses and one probe is let through.
     """
 
     def __init__(
         self,
         shard_urls: list[str] | None = None,
-        timeout: float = DEFAULT_TIMEOUT_SECONDS,
+        connect_timeout: float | None = None,
+        read_timeout: float | None = None,
         client: httpx.Client | None = None,
+        breaker_failure_threshold: int | None = None,
+        breaker_cooldown_seconds: float | None = None,
     ) -> None:
+        """Every tunable falls back to an environment variable, then to the
+        module default, in that order -- so docker-compose can configure a
+        deployed coordinator without a code change, while tests pass exact
+        values directly and never touch the environment.
+        """
         if shard_urls is None:
             raw = os.environ.get("SHARD_URLS", "")
             shard_urls = [url.strip() for url in raw.split(",") if url.strip()]
         if not shard_urls:
             raise ValueError("no shard URLs configured: pass shard_urls or set SHARD_URLS")
 
+        if connect_timeout is None:
+            connect_timeout = float(os.environ.get("SHARD_CONNECT_TIMEOUT", DEFAULT_CONNECT_TIMEOUT_SECONDS))
+        if read_timeout is None:
+            read_timeout = float(os.environ.get("SHARD_READ_TIMEOUT", DEFAULT_READ_TIMEOUT_SECONDS))
+        if breaker_failure_threshold is None:
+            breaker_failure_threshold = int(
+                os.environ.get("BREAKER_FAILURE_THRESHOLD", DEFAULT_BREAKER_FAILURE_THRESHOLD)
+            )
+        if breaker_cooldown_seconds is None:
+            breaker_cooldown_seconds = float(
+                os.environ.get("BREAKER_COOLDOWN_SECONDS", DEFAULT_BREAKER_COOLDOWN_SECONDS)
+            )
+
         self._shard_urls = shard_urls
-        self._timeout = timeout
+        self._request_timeout = httpx.Timeout(
+            connect=connect_timeout, read=read_timeout, write=read_timeout, pool=connect_timeout,
+        )
+        # The thread-pool result guard has to be strictly looser than the
+        # request-level timeout, or it could fire first and mask the real
+        # (informative) httpx timeout error with a generic "future timed out".
+        self._future_timeout = connect_timeout + read_timeout + 1.0
         self._client = client if client is not None else httpx.Client()
         self._pool = ThreadPoolExecutor(max_workers=len(shard_urls))
         self._down: set[str] = set()
+        self._breakers = {
+            url: CircuitBreaker(
+                failure_threshold=breaker_failure_threshold,
+                cooldown_seconds=breaker_cooldown_seconds,
+            )
+            for url in shard_urls
+        }
 
     def _query_shard(self, url: str, query: str, top_k: int):
         if url in self._down:
             raise RuntimeError(f"{url} is marked down")
-        response = self._client.get(
-            f"{url}/search", params={"q": query, "k": top_k}, timeout=self._timeout,
-        )
-        response.raise_for_status()
+
+        breaker = self._breakers[url]
+        if not breaker.allow_request():
+            raise CircuitOpenError(f"{url} circuit is open")
+
+        try:
+            response = self._client.get(
+                f"{url}/search", params={"q": query, "k": top_k}, timeout=self._request_timeout,
+            )
+            response.raise_for_status()
+        except Exception:
+            breaker.record_failure()
+            raise
+
+        breaker.record_success()
         payload = response.json()
         return url, [(r["score"], r["doc_id"], url, r["title"]) for r in payload]
 
@@ -167,7 +232,7 @@ class Coordinator:
         failed = []
         for url, future in futures.items():
             try:
-                _, scored = future.result(timeout=self._timeout)
+                _, scored = future.result(timeout=self._future_timeout)
                 per_shard.append(scored)
             except Exception:
                 # Partial results beat no results: two thirds of the corpus
@@ -202,6 +267,17 @@ class Coordinator:
 
     def revive_shard(self, url: str) -> None:
         self._down.discard(url)
+
+    @property
+    def shard_urls(self) -> list[str]:
+        return list(self._shard_urls)
+
+    @property
+    def breaker_stats(self) -> dict[str, dict]:
+        return {
+            url: {"state": breaker.state, "consecutive_failures": breaker.consecutive_failures}
+            for url, breaker in self._breakers.items()
+        }
 
     def close(self) -> None:
         self._pool.shutdown(wait=False)

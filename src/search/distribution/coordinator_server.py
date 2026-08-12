@@ -22,6 +22,16 @@ class SearchResponse(BaseModel):
     degraded: bool
 
 
+class BreakerStatus(BaseModel):
+    state: str
+    consecutive_failures: int
+
+
+class StatsResponse(BaseModel):
+    shard_urls: list[str]
+    breakers: dict[str, BreakerStatus]
+
+
 def create_app(coordinator: Coordinator | None = None) -> FastAPI:
     """`coordinator=None` builds a Coordinator from SHARD_URLS at startup --
     the production path, one process fronting every shard. Passing a
@@ -40,6 +50,14 @@ def create_app(coordinator: Coordinator | None = None) -> FastAPI:
     @app.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.get("/stats", response_model=StatsResponse)
+    def stats(request: Request) -> StatsResponse:
+        coord: Coordinator = request.app.state.coordinator
+        return StatsResponse(
+            shard_urls=coord.shard_urls,
+            breakers={url: BreakerStatus(**info) for url, info in coord.breaker_stats.items()},
+        )
 
     @app.get("/search", response_model=SearchResponse)
     def search(

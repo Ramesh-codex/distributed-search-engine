@@ -1,4 +1,4 @@
-x-shard-healthcheck: &shard-healthcheck
+﻿x-shard-healthcheck: &shard-healthcheck
   test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
   interval: 5s
   timeout: 3s
@@ -38,6 +38,10 @@ services:
     command: uvicorn search.distribution.coordinator_server:app --host 0.0.0.0 --port 8000
     environment:
       SHARD_URLS: http://shard-0:8000,http://shard-1:8000,http://shard-2:8000
+      SHARD_CONNECT_TIMEOUT: "0.2"
+      SHARD_READ_TIMEOUT: "2.0"
+      BREAKER_FAILURE_THRESHOLD: "1"
+      BREAKER_COOLDOWN_SECONDS: "10"
     depends_on:
       shard-0:
         condition: service_healthy

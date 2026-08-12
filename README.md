@@ -1,4 +1,6 @@
-# distributed-search-engine
+﻿# distributed-search-engine
+
+![Search UI](docs/search-ui.png)
 
 A search engine built from scratch to be defensible in an interview: the
 tokenizer, inverted index, BM25 ranker, and the crawler that feeds them are

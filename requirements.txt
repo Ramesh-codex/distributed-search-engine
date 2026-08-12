@@ -1,0 +1,13 @@
+﻿# --- Phase 1: single-node core ---
+httpx
+beautifulsoup4
+lxml
+fastapi
+uvicorn[standard]
+
+# --- dev / test ---
+pytest
+pytest-asyncio
+pytest-cov
+hypothesis
+ruff

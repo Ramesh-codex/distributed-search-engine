@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.git/
+tests/
+benchmarks/
+data/
+docs/
+*.md
+scratch.py

@@ -1,0 +1,56 @@
+x-shard-healthcheck: &shard-healthcheck
+  test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+  interval: 5s
+  timeout: 3s
+  retries: 5
+  start_period: 10s
+
+services:
+  shard-0:
+    build: .
+    command: uvicorn search.distribution.shard_server:app --host 0.0.0.0 --port 8000
+    environment:
+      SHARD_DIR: /data/shard
+    volumes:
+      - ./data/cluster30k/shard-0:/data/shard:ro
+    healthcheck: *shard-healthcheck
+
+  shard-1:
+    build: .
+    command: uvicorn search.distribution.shard_server:app --host 0.0.0.0 --port 8000
+    environment:
+      SHARD_DIR: /data/shard
+    volumes:
+      - ./data/cluster30k/shard-1:/data/shard:ro
+    healthcheck: *shard-healthcheck
+
+  shard-2:
+    build: .
+    command: uvicorn search.distribution.shard_server:app --host 0.0.0.0 --port 8000
+    environment:
+      SHARD_DIR: /data/shard
+    volumes:
+      - ./data/cluster30k/shard-2:/data/shard:ro
+    healthcheck: *shard-healthcheck
+
+  coordinator:
+    build: .
+    command: uvicorn search.distribution.coordinator_server:app --host 0.0.0.0 --port 8000
+    environment:
+      SHARD_URLS: http://shard-0:8000,http://shard-1:8000,http://shard-2:8000
+    depends_on:
+      shard-0:
+        condition: service_healthy
+      shard-1:
+        condition: service_healthy
+      shard-2:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - coordinator

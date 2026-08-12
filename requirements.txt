@@ -11,3 +11,4 @@ pytest-asyncio
 pytest-cov
 hypothesis
 ruff
+psutil

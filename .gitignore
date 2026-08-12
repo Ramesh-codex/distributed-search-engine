@@ -6,3 +6,4 @@ data/corpus/
 *.db
 .env
 scratch.py
+data/dumps/

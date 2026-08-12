@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>distributed-search-engine</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --fg: #1a1a1a;
+    --bg: #ffffff;
+    --muted: #666666;
+    --border: #dddddd;
+    --accent: #1a56db;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg: #e8e8e8; --bg: #121212; --muted: #999999; --border: #333333; --accent: #6ea8fe; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2rem 1rem 4rem;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  main { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 1.4rem; margin: 0 0 1rem; }
+  form { display: flex; gap: 0.5rem; }
+  input[type="search"] {
+    flex: 1;
+    padding: 0.6rem 0.8rem;
+    font-size: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--fg);
+  }
+  button {
+    padding: 0.6rem 1.2rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.6; cursor: default; }
+  #meta { color: var(--muted); font-size: 0.85rem; margin: 0.75rem 0; min-height: 1.2em; }
+  ol#results { list-style: none; margin: 0; padding: 0; }
+  li.result { padding: 0.9rem 0; border-bottom: 1px solid var(--border); }
+  li.result a { color: var(--accent); text-decoration: none; font-size: 1.05rem; }
+  li.result a:hover { text-decoration: underline; }
+  li.result .score { color: var(--muted); font-size: 0.8rem; margin-left: 0.5rem; }
+  footer { color: var(--muted); font-size: 0.8rem; margin-top: 2rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>distributed-search-engine</h1>
+  <form id="search-form">
+    <input type="search" id="q" name="q" placeholder="Search the corpus..." autofocus autocomplete="off">
+    <button type="submit">Search</button>
+  </form>
+  <p id="meta"></p>
+  <ol id="results"></ol>
+  <footer id="corpus-info"></footer>
+</main>
+
+<script>
+const form = document.getElementById("search-form");
+const input = document.getElementById("q");
+const meta = document.getElementById("meta");
+const results = document.getElementById("results");
+const corpusInfo = document.getElementById("corpus-info");
+
+async function loadStats() {
+  try {
+    const res = await fetch("/stats");
+    if (!res.ok) return;
+    const s = await res.json();
+    corpusInfo.textContent =
+      `${s.document_count.toLocaleString()} documents indexed, ` +
+      `${s.vocabulary_size.toLocaleString()} vocabulary terms, ` +
+      `avg length ${s.avgdl.toFixed(0)} tokens`;
+  } catch (e) {
+    // Stats are a nice-to-have footer, not worth failing the page over.
+  }
+}
+
+function renderResults(data) {
+  results.innerHTML = "";
+  meta.textContent = `${data.total_hits} hit${data.total_hits === 1 ? "" : "s"} in ${data.elapsed_ms}ms`;
+
+  if (data.results.length === 0) {
+    results.innerHTML = "<li class='result'>No results.</li>";
+    return;
+  }
+
+  for (const r of data.results) {
+    const li = document.createElement("li");
+    li.className = "result";
+    const a = document.createElement("a");
+    a.href = r.url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.textContent = r.title || `(untitled, doc ${r.doc_id})`;
+    const score = document.createElement("span");
+    score.className = "score";
+    score.textContent = `score ${r.score}`;
+    li.append(a, score);
+    results.appendChild(li);
+  }
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const q = input.value.trim();
+  if (!q) return;
+
+  meta.textContent = "Searching...";
+  results.innerHTML = "";
+
+  try {
+    const res = await fetch(`/search?q=${encodeURIComponent(q)}&k=10`);
+    if (!res.ok) {
+      meta.textContent = `Search failed (${res.status})`;
+      return;
+    }
+    renderResults(await res.json());
+  } catch (e) {
+    meta.textContent = "Search failed: could not reach the server.";
+  }
+});
+
+loadStats();
+</script>
+</body>
+</html>

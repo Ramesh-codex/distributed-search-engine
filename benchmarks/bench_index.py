@@ -13,7 +13,7 @@ from search.ranking.bm25 import BM25Ranker
 from search.storage.wiki_loader import stream_articles
 
 DUMP = "data/dumps/simplewiki.xml.bz2"
-CORPUS_SIZES = (5000, 10000, 20000)
+CORPUS_SIZES = (50000, 100000)
 
 
 def rss_mb() -> float:

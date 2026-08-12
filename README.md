@@ -322,3 +322,113 @@ fixed overhead to show up in. p99 is effectively unchanged (11.202 ms vs.
 11.164 ms) because the tail is CPU-bound on BM25 scoring across long
 postings lists, not on fetching them — the decode cost that dominates p50
 is noise next to that.
+
+## Phase 3: sharded cluster over Docker Compose
+
+Everything in this section is measured against the actual running stack —
+3 shard containers, a coordinator, and nginx (`docker-compose.yml`), serving
+the 30K-document corpus in `data/cluster30k` — not simulated.
+
+```mermaid
+flowchart LR
+    Client([Client]) --> Nginx[[nginx]]
+    Nginx --> CoordSrv[coordinator_server]
+    CoordSrv --> Coord[Coordinator<br/>heapq.merge + CircuitBreaker per shard]
+    Coord -- GET /search --> S0[shard_server<br/>shard-0]
+    Coord -- GET /search --> S1[shard_server<br/>shard-1]
+    Coord -- GET /search --> S2[shard_server<br/>shard-2]
+    S0 --> D0[(ShardIndex, mmap'd)]
+    S1 --> D1[(ShardIndex, mmap'd)]
+    S2 --> D2[(ShardIndex, mmap'd)]
+```
+
+### Consistent hash ring: virtual-node balance
+
+`ConsistentHashRing` (`src/search/distribution/consistent_hash.py`) partitions
+30,000 document keys across 3 shards. Max deviation from a fair 1/3 share, by
+virtual-node replica count:
+
+| replicas | max deviation from fair share |
+|---|---|
+| 1 | 35.6% |
+| 10 | 30.5% |
+| 50 | 14.6% |
+| 150 | 11.8% |
+| 500 | 6.1% |
+| 1000 | 0.8% |
+
+The ring's default (`replicas=1000`) was set from this curve, not guessed —
+imbalance keeps falling as replica count grows, and 1000 is where it flattens
+out under 1%. On the real corpus this held up outside simulation too: the
+actual partition landed at 10,072 / 10,009 / 9,919 documents — a 1.5% spread
+between the largest and smallest shard.
+
+### Correctness: bit-identical scores across shards
+
+Sharded rankings match single-node ranking exactly — score delta `0.0`, not
+just "close" — across every query tested. This holds because `document_frequency`,
+`document_count`, and `avgdl` are computed once over the *whole* corpus at
+build time and shipped into every shard (`shard_builder.py`), and `ShardIndex`
+serves those global values instead of its own local ones (`shard_index.py`).
+BM25 is only comparable across shards if every shard's IDF and length
+normalization agree on what "the corpus" is.
+
+That this matters is easy to demonstrate by looking at what each shard would
+say on its own: shard-0 saw "solar" in 1.34% of its local documents, shard-2
+in 1.51%. Ranking off shard-local IDF instead of global IDF would silently
+diverge shard-to-shard — every shard would be scoring against a different,
+slightly wrong idea of how rare a term is.
+
+### Failure behavior: the circuit breaker in practice
+
+Shard-1 stopped, all other conditions held constant:
+
+| state | latency |
+|---|---|
+| healthy, 3 shards | 25 ms |
+| shard down, breaker closed | 3208–3604 ms |
+| shard down, breaker open | 4.1–4.5 ms |
+
+Once the breaker opens, a query that would otherwise cost over 3 seconds
+costs under 5 milliseconds — the whole point of skipping a known-dead shard
+instead of re-discovering it's dead on every request.
+
+### Finding: the 3.2s hang is Docker DNS resolution, not the connect timeout
+
+`SHARD_CONNECT_TIMEOUT=0.2` does not bound this delay, and the reason is
+mechanical rather than a misconfigured value: measured directly inside the
+coordinator container, a bare `httpx.get(..., timeout=httpx.Timeout(connect=0.2))`
+against a stopped shard's hostname raised `ConnectError` only after 4.073s.
+Name resolution — Docker's embedded DNS resolving `shard-1` to an address —
+happens *before* httpx starts its connect budget; httpx's `connect` timeout
+only governs the TCP handshake once it has an address to dial, not how long
+resolving the name itself is allowed to take. Lowering the timeout further
+would do nothing, because the timeout was never the thing on the clock during
+the slow part.
+
+This is exactly why the circuit breaker is described as the fix and not a
+shorter timeout in the previous change: it doesn't shrink the cost of one
+doomed request, it stops paying that cost repeatedly. The timeout bounds a
+request; the breaker bounds how many times you make one.
+
+### Known limitation: a time-of-check-to-time-of-use gap in the breaker
+
+With `BREAKER_FAILURE_THRESHOLD=1`, the breaker was measured opening only
+after 2 consecutive failures, not 1. The cause is a race, not a bug in the
+state machine itself: `Coordinator.search()` scatters to all shards in
+parallel and each request only calls `record_failure()` on completion — after
+its own full connect-then-DNS hang. If a second `search()` call arrives while
+the first request to the down shard is still in flight, it calls
+`breaker.allow_request()`, sees the breaker still `closed` (the first
+failure hasn't been recorded yet because that request hasn't finished), and
+dispatches its own doomed request. Both eventually fail and both record a
+failure, so the breaker opens on the 2nd recorded failure regardless of the
+configured threshold of 1.
+
+`CircuitBreaker` itself is not wrong here — every transition it makes is
+correct given what it's been told. What's missing is anything upstream
+tracking *in-flight* requests per shard, so a second caller arriving mid-hang
+would wait on (or be told about) the first request's outcome instead of
+independently starting a second one. The fix would be capping concurrent
+in-flight requests per shard endpoint — effectively a bulkhead in front of
+the breaker. Not implemented.

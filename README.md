@@ -171,8 +171,7 @@ p95/p99 tail, and their cost scales with total corpus size, not with query
 complexity — which is why the tail degrades far faster than the median as
 the corpus grows.
 
-That's what motivates the two unimplemented pieces in the architecture
-diagram:
+That's what motivated caching and sharding as the next two pieces to build:
 
 - **Caching** — the same small set of high-df terms recurs across many
   queries; memoizing `document_frequency`/IDF, or caching hot query results
@@ -228,3 +227,73 @@ but the term need not be a real word, and nothing guarantees it won't also
 be the correct stem of some unrelated word. Recorded here as a documented
 limitation per the project's review-not-rewrite division of labor, not
 something patched silently.
+
+## Phase 2: cache, codec, on-disk index
+
+Three components built on top of the Phase 1 core, each independently
+benchmarked (`benchmarks/bench_cache.py`, `bench_codec.py`, `bench_ondisk.py`)
+against the 20K-document corpus. None is wired into `search/api` yet — these
+numbers describe the components in isolation, not the live service.
+
+### LRU query cache
+
+`CachedRanker` (`src/search/ranking/cached_ranker.py`) wraps `BM25Ranker`
+with `LRUCache` (`src/search/cache/lru.py`), keyed on the normalized
+`(query, top_k)` pair. Measured against a Zipfian query distribution — a
+handful of queries account for most traffic, a long tail is seen once or
+rarely — over 2,000 trials:
+
+| capacity | hit rate | p50 | p95 | p99 |
+|---|---|---|---|---|
+| 50 | 66.7% | 0.001 ms | 1.833 ms | 4.185 ms |
+| 256 | 90.7% | 0.001 ms | 0.170 ms | 2.325 ms |
+
+Uncached baseline: p50 0.273 ms, p95 4.067 ms, p99 6.149 ms.
+
+**Finding: caching collapses the median but barely moves the tail, because
+p99 is dominated by misses.** The Zipfian head — a small number of distinct
+queries — is what makes p50 nearly free (0.001 ms) at even a 50-entry
+cache. But p99 is drawn from the distribution's long tail: queries the
+cache has never seen, which still pay the full uncached `BM25Ranker` cost
+regardless of capacity. Growing the cache from 50 to 256 entries lifts the
+hit rate and does pull p99 down (4.185 ms → 2.325 ms), but only by admitting
+more of the tail into cache coverage — a genuine miss is exactly as
+expensive at capacity 256 as at capacity 50. A cache makes the worst case
+rarer, not faster.
+
+### VByte delta-encoded postings
+
+`src/search/index/codec.py` sorts postings by `doc_id` (an invariant
+`InvertedIndex` already guarantees), stores gaps between consecutive ids
+instead of absolute ids, and packs each gap and term frequency as a
+variable-byte integer — 7 data bits per byte, high bit as a continuation
+flag, so any gap under 128 fits in one byte. Across the 20K-doc corpus's
+4.1M postings:
+
+**4.01 bytes/posting packed, versus ~64 bytes for a `(doc_id, tf)` tuple in
+a Python list** — roughly 16x smaller. The saving is entirely object
+overhead: a Python tuple of two ints costs pointers, type headers, and
+per-object allocation for 8 bytes of actual data; a packed byte string pays
+close to only for the data itself.
+
+### On-disk mmap'd index
+
+`OnDiskIndexWriter`/`OnDiskIndex` (`src/search/storage/ondisk.py`) serialize
+postings into one contiguous VByte-encoded blob and serve it via
+`mmap`, so the OS pages in only the slices a query actually touches instead
+of the process holding every posting resident:
+
+| mode | resident | load | p50 | p95 | p99 |
+|---|---|---|---|---|---|
+| in-memory | 334.9 MB | 31.4 s | 0.305 ms | 3.777 ms | 11.202 ms |
+| on-disk | 52.9 MB | 0.27 s | 0.525 ms | 4.187 ms | 11.164 ms |
+
+**Finding: 0.22 ms added to the median buys 6.3x less resident memory and a
+116x faster load.** The median slows because varint decoding is fixed
+per-fetch overhead — `decode_postings` now runs on every `postings()` call
+instead of returning an already-resident Python list — and that cost is
+visible precisely because 0.3 ms is a small enough baseline for a
+fixed overhead to show up in. p99 is effectively unchanged (11.202 ms vs.
+11.164 ms) because the tail is CPU-bound on BM25 scoring across long
+postings lists, not on fetching them — the decode cost that dominates p50
+is noise next to that.

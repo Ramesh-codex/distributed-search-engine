@@ -1,3 +1,4 @@
+import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -9,9 +10,12 @@ from pydantic import BaseModel
 from search.api.index_loader import build_index
 from search.index.inverted_index import InvertedIndex
 from search.index.tokenizer import tokenize
-from search.ranking.bm25 import BM25Ranker
+from search.ranking.cached_ranker import CachedRanker
+from search.storage.ondisk import OnDiskIndex
 
 _INDEX_HTML = (Path(__file__).parent / "static" / "index.html").read_text(encoding="utf-8")
+
+DEFAULT_CACHE_SIZE = 1024
 
 
 class SearchResult(BaseModel):
@@ -32,23 +36,33 @@ class StatsResponse(BaseModel):
     document_count: int
     vocabulary_size: int
     avgdl: float
+    cache_hits: int
+    cache_misses: int
+    cache_hit_rate: float
 
 
-def create_app(index: InvertedIndex | None = None) -> FastAPI:
-    """`index=None` builds the real corpus from the wiki dump at startup --
-    the production path. Passing a pre-built index skips that and is what
-    lets tests exercise the API against a small in-memory index instead of
-    a multi-minute dump load.
+def create_app(index: InvertedIndex | OnDiskIndex | None = None) -> FastAPI:
+    """`index=None` builds the real corpus at startup -- from a prebuilt
+    on-disk index if SEARCH_INDEX_DIR has one, otherwise from the wiki dump
+    (see index_loader.build_index). Passing a pre-built index skips that
+    and is what lets tests exercise the API against a small in-memory index
+    instead of a multi-minute dump load.
     """
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        if index is not None:
-            app.state.index = index
-            app.state.ranker = BM25Ranker(index)
-        else:
-            app.state.index, app.state.ranker = build_index()
+        idx = index if index is not None else build_index()
+        cache_capacity = int(os.environ.get("SEARCH_CACHE_SIZE", DEFAULT_CACHE_SIZE))
+
+        app.state.index = idx
+        app.state.ranker = CachedRanker(idx, capacity=cache_capacity)
         yield
+
+        # OnDiskIndex holds an open mmap + file handle; InvertedIndex has no
+        # close() at all, so this is a no-op for the in-memory path.
+        close = getattr(idx, "close", None)
+        if close is not None:
+            close()
 
     app = FastAPI(title="distributed-search-engine", lifespan=lifespan)
 
@@ -62,11 +76,16 @@ def create_app(index: InvertedIndex | None = None) -> FastAPI:
 
     @app.get("/stats", response_model=StatsResponse)
     def stats(request: Request) -> StatsResponse:
-        idx: InvertedIndex = request.app.state.index
+        idx = request.app.state.index
+        ranker: CachedRanker = request.app.state.ranker
+        cache_stats = ranker.stats
         return StatsResponse(
             document_count=idx.document_count,
             vocabulary_size=idx.vocabulary_size,
             avgdl=idx.avgdl,
+            cache_hits=cache_stats["hits"],
+            cache_misses=cache_stats["misses"],
+            cache_hit_rate=cache_stats["hit_rate"],
         )
 
     @app.get("/search", response_model=SearchResponse)
@@ -75,8 +94,8 @@ def create_app(index: InvertedIndex | None = None) -> FastAPI:
         q: str = Query(..., min_length=1),
         k: int = Query(10, ge=1, le=100),
     ) -> SearchResponse:
-        idx: InvertedIndex = request.app.state.index
-        ranker: BM25Ranker = request.app.state.ranker
+        idx = request.app.state.index
+        ranker: CachedRanker = request.app.state.ranker
 
         start = time.perf_counter()
         hits = ranker.search(q, top_k=k)

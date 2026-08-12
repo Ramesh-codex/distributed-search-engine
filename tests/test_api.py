@@ -36,6 +36,21 @@ def test_stats_reflects_the_index(client, index):
     assert body["document_count"] == index.document_count
     assert body["vocabulary_size"] == index.vocabulary_size
     assert body["avgdl"] == pytest.approx(index.avgdl)
+    # Fresh app, no searches yet: the cache has seen nothing.
+    assert body["cache_hits"] == 0
+    assert body["cache_misses"] == 0
+    assert body["cache_hit_rate"] == 0.0
+
+
+def test_stats_tracks_cache_hits_and_misses(client):
+    client.get("/search", params={"q": "distributed", "k": 5})  # miss: first time seen
+    client.get("/search", params={"q": "distributed", "k": 5})  # hit: identical (query, k)
+    client.get("/search", params={"q": "distributed", "k": 9})  # miss: different k, different key
+
+    body = client.get("/stats").json()
+    assert body["cache_misses"] == 2
+    assert body["cache_hits"] == 1
+    assert body["cache_hit_rate"] == pytest.approx(1 / 3, abs=1e-4)
 
 
 def test_home_serves_html(client):

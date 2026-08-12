@@ -46,6 +46,6 @@ def measure(ranker, label):
 
 measure(BM25Ranker(index), "uncached")
 
-cached = CachedRanker(index, capacity=256)
+cached = CachedRanker(index, capacity=50)
 measure(cached, "cached (capacity 256)")
 print(f"  {cached.stats}")

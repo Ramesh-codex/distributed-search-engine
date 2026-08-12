@@ -8,3 +8,5 @@ data/corpus/
 scratch.py
 data/dumps/
 data/index*/
+data/cluster*/
+data/

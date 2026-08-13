@@ -393,6 +393,11 @@ Once the breaker opens, a query that would otherwise cost over 3 seconds
 costs under 5 milliseconds — the whole point of skipping a known-dead shard
 instead of re-discovering it's dead on every request.
 
+| All 3 shards healthy | Shard-1 stopped |
+|---|---|
+| ![All three shards healthy: query "solar system" returns 10 results from 3 shards in 29ms, each result badged shard-0/shard-1/shard-2](docs/sharded-healthy.png) | ![Shard-1 stopped: an amber "Degraded: 1 shard unavailable (shard-1:8000) — results are partial" banner appears, and the same query returns 10 results from 2 shards in 3630ms, with zero shard-1 badges anywhere in the results](docs/sharded-degraded.png) |
+| **10/10 results, 3/3 shards, 29ms.** Badges read shard-0, shard-1, shard-2 — every shard is represented. | **Degraded banner visible, 10/10 results, but only 2/3 shards, 3630ms.** No shard-1 badge appears anywhere — its results are simply gone, not slower. |
+
 ### Finding: the 3.2s hang is Docker DNS resolution, not the connect timeout
 
 `SHARD_CONNECT_TIMEOUT=0.2` does not bound this delay, and the reason is

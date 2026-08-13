@@ -63,6 +63,13 @@ def test_health(client):
     assert response.json() == {"status": "ok"}
 
 
+def test_home_serves_html(client):
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "<html" in response.text.lower()
+
+
 def test_search(client):
     response = client.get("/search", params={"q": "solar system", "k": 5})
     assert response.status_code == 200

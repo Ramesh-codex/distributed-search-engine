@@ -4,6 +4,22 @@ A working real-documentation search vertical built on the existing custom
 inverted index, BM25 ranker, consistent-hash partitioning, on-disk postings,
 FastAPI shard servers and scatter/gather HTTP coordinator.
 
+## Verified public deployment
+
+**[Open the Developer Documentation Search](https://distributed-search-portfolio-demo-rvv6.onrender.com/)**
+
+- [Interactive search API](https://distributed-search-portfolio-demo-rvv6.onrender.com/docs)
+- [Search FastAPI](https://distributed-search-portfolio-demo-rvv6.onrender.com/search?q=dependency&source=FastAPI)
+- [Search HTTPX](https://distributed-search-portfolio-demo-rvv6.onrender.com/search?q=timeout&source=HTTPX)
+- [Search Docker](https://distributed-search-portfolio-demo-rvv6.onrender.com/search?q=Dockerfile&source=Docker)
+- [Public HTTPS integration test (passed)](https://github.com/Ramesh-codex/distributed-search-engine/actions/runs/41043841430)
+
+Render's service name is `distributed-search-portfolio-demo-rvv6` because it
+was created from an existing Blueprint name. The service is correctly configured
+to build `Dockerfile.docs` from `developer-docs-search`. This is a
+**separate** service from the original portfolio demo and remains on the
+Render Free plan.
+
 ## What is indexed
 
 188 short sections from 20 actual documentation pages:

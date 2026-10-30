@@ -7,6 +7,14 @@ tokenizer, inverted index, BM25 ranker, and the crawler that feeds them are
 hand-written, not assembled from a library that does the information-retrieval
 thinking for you. See [CLAUDE.md](CLAUDE.md) for the full constraint set.
 
+## Developer Documentation Search — live application
+
+**[Search official documentation](https://distributed-search-portfolio-demo-rvv6.onrender.com/)** · [API explorer](https://distributed-search-portfolio-demo-rvv6.onrender.com/docs) · [Implementation guide](docs_app/README.md) · [Verified public HTTPS search](https://github.com/Ramesh-codex/distributed-search-engine/actions/runs/41043841430)
+
+This branch adds a practical search application using the **existing three-shard HTTP coordinator, custom inverted index, and BM25 scoring**. It indexes **188 attributed excerpts from 20 official FastAPI, HTTPX, and Docker documentation pages** in a reproducible snapshot. Try `dependency injection`, `request timeout`, and `Dockerfile build`, and filter results by documentation source. Each result includes a link to the official documentation.
+
+The Render-hosted implementation runs three separate HTTP shard processes on one free instance—not three physical machines. The original 48-document portfolio demo and the larger Wikipedia benchmark are **different datasets** with different performance characteristics. The original `main` and `deployment-demo` branches are unchanged.
+
 ## Live demo (Render Free)
 
 **[Launch the three-shard search engine](https://distributed-search-portfolio-demo.onrender.com/)** · [Try the API](https://distributed-search-portfolio-demo.onrender.com/docs) · [Deployment guide](docs/DEPLOY_DEMO.md) · [Public HTTPS verification](https://github.com/Ramesh-codex/distributed-search-engine/actions/runs/41036517676)

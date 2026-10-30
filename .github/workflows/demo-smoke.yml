@@ -27,3 +27,10 @@ jobs:
         env:
           PYTHONPATH: src
         run: python demo/smoke_test.py
+      - name: Build production-like Render Docker image
+        run: docker build --file Dockerfile.render --tag search-demo:ci .
+      - name: Verify live HTTP inside Docker
+        run: |
+          docker run --detach --name search-demo-ci --publish 10000:10000 --env PORT=10000 search-demo:ci
+          trap 'docker logs search-demo-ci; docker rm -f search-demo-ci' EXIT
+          python demo/verify_http.py --url http://127.0.0.1:10000 --wait 60

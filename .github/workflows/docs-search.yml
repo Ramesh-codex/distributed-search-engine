@@ -1,0 +1,63 @@
+name: Developer docs search integration
+
+on:
+  push:
+    branches: [developer-docs-search]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docs-search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install runtime
+        run: python -m pip install -r requirements-demo.txt
+      - name: Python syntax
+        run: python -m compileall -q src demo docs_app
+      - name: JavaScript syntax
+        run: |
+          python - <<'PY'
+          import pathlib,re
+          html=pathlib.Path("docs_app/static/index.html").read_text()
+          match=re.search(r"<script>([\s\S]+?)</script>",html)
+          assert match
+          pathlib.Path("/tmp/docs-ui.js").write_text(match.group(1))
+          PY
+          node --check /tmp/docs-ui.js
+      - name: Test docs HTTP cluster
+        run: PYTHONPATH=src:. python -m docs_app.smoke_test
+      - name: Build Docker image
+        run: docker build -f Dockerfile.docs -t devdocs-search:ci .
+      - name: Smoke test Docker container
+        run: |
+          docker run -d --name devdocs-ci -p 10000:10000 -e PORT=10000 devdocs-search:ci
+          trap 'docker logs devdocs-ci; docker rm -f devdocs-ci' EXIT
+          python - <<'PY'
+          import json,time,urllib.request,urllib.parse
+          root="http://127.0.0.1:10000"
+          deadline=time.monotonic()+75
+          while True:
+              try:
+                  with urllib.request.urlopen(root+"/health",timeout=3) as r:
+                      assert json.load(r)=={"status":"ok"}
+                  break
+              except Exception:
+                  if time.monotonic()>deadline: raise
+                  time.sleep(1)
+          with urllib.request.urlopen(root+"/stats",timeout=4) as r:
+              data=json.load(r)
+          assert data["document_count"]==188 and len(data["shard_urls"])==3
+          for q,source in [("dependency","FastAPI"),("timeout","HTTPX"),("Dockerfile","Docker")]:
+              url=root+"/search?"+urllib.parse.urlencode({"q":q,"source":source,"k":3})
+              with urllib.request.urlopen(url,timeout=8) as r:
+                  body=json.load(r)
+              assert body["results"] and not body["degraded"] and body["shards_queried"]==3,body
+          print("PASS: Docker docs app with 3 HTTP shards and filtered search")
+          PY

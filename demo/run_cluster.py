@@ -81,7 +81,7 @@ def main() -> int:
         env.setdefault("SHARD_CONNECT_TIMEOUT", "0.4")
         env.setdefault("SHARD_READ_TIMEOUT", "2.0")
         coordinator = start_process(
-            "search.distribution.coordinator_server:app",
+            os.environ.get("DEMO_COORDINATOR_MODULE", "search.distribution.coordinator_server:app"),
             PUBLIC_PORT, "0.0.0.0", env
         )
         print(f"Serving three-shard search on port {PUBLIC_PORT}", flush=True)

@@ -1,0 +1,585 @@
+{
+  "source": "HTTPX",
+  "license": "BSD-3-Clause",
+  "snapshot_date": "2026-10-30",
+  "docs": [
+    {
+      "title": "QuickStart",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/quickstart/",
+      "section": "QuickStart",
+      "text": "First, start by importing HTTPX: Now, let’s try to get a webpage. Similarly, to make an HTTP POST request: The PUT, DELETE, HEAD, and OPTIONS requests all follow the same style:",
+      "summary": "First, start by importing HTTPX: Now, let’s try to get a webpage. Similarly, to make an HTTP POST request: The PUT, DELETE, HEAD, and OPTIONS requests all follow the same style:",
+      "source_path": "docs/quickstart.md",
+      "source_blob_sha": "e140b53cd79583afd9425d8ace936b56a68c1fc4"
+    },
+    {
+      "title": "Passing Parameters in URLs",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/quickstart/",
+      "section": "Passing Parameters in URLs",
+      "text": "To include URL query parameters in the request, use the params keyword: To see how the values get encoding into the URL string, we can inspect the resulting URL that was used to make the request: You can also pass a list of items as a value:",
+      "summary": "To include URL query parameters in the request, use the params keyword: To see how the values get encoding into the URL string, we can inspect the resulting URL that was used to make the request: You can also pass a list",
+      "source_path": "docs/quickstart.md",
+      "source_blob_sha": "e140b53cd79583afd9425d8ace936b56a68c1fc4"
+    },
+    {
+      "title": "Response Content",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/quickstart/",
+      "section": "Response Content",
+      "text": "HTTPX will automatically handle decoding the response content into Unicode text. You can inspect what encoding will be used to decode the response. In some cases the response may not contain an explicit encoding, in which case HTTPX will attempt to automatically determine an encoding to use. If you need to override the standard behaviour and explicitly set the encoding to use, then you can do that too.",
+      "summary": "HTTPX will automatically handle decoding the response content into Unicode text. You can inspect what encoding will be used to decode the response. In some cases the response may not contain an explicit encoding, in whic",
+      "source_path": "docs/quickstart.md",
+      "source_blob_sha": "e140b53cd79583afd9425d8ace936b56a68c1fc4"
+    },
+    {
+      "title": "Binary Response Content",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/quickstart/",
+      "section": "Binary Response Content",
+      "text": "The response content can also be accessed as bytes, for non-text responses: Any gzip and deflate HTTP response encodings will automatically be decoded for you. If brotlipy is installed, then the brotli response encoding will be supported. If zstandard is installed, then zstd response encodings will also be supported. For example, to create an image from binary data returned by a request, you can use the following code:",
+      "summary": "The response content can also be accessed as bytes, for non-text responses: Any gzip and deflate HTTP response encodings will automatically be decoded for you. If brotlipy is installed, then the brotli response encoding ",
+      "source_path": "docs/quickstart.md",
+      "source_blob_sha": "e140b53cd79583afd9425d8ace936b56a68c1fc4"
+    },
+    {
+      "title": "Sending Form Encoded Data",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/quickstart/",
+      "section": "Sending Form Encoded Data",
+      "text": "Some types of HTTP requests, such as POST and PUT requests, can include data in the request body. One common way of including that is as form-encoded data, which is used for HTML forms. Form encoded data can also include multiple values from a given key.",
+      "summary": "Some types of HTTP requests, such as POST and PUT requests, can include data in the request body. One common way of including that is as form-encoded data, which is used for HTML forms. Form encoded data can also include",
+      "source_path": "docs/quickstart.md",
+      "source_blob_sha": "e140b53cd79583afd9425d8ace936b56a68c1fc4"
+    },
+    {
+      "title": "Sending Multipart File Uploads",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/quickstart/",
+      "section": "Sending Multipart File Uploads",
+      "text": "You can also upload files, using HTTP multipart encoding: You can also explicitly set the filename and content type, by using a tuple of items for the file value: If you need to include non-file data fields in the multipart form, use the data=... parameter:",
+      "summary": "You can also upload files, using HTTP multipart encoding: You can also explicitly set the filename and content type, by using a tuple of items for the file value: If you need to include non-file data fields in the multip",
+      "source_path": "docs/quickstart.md",
+      "source_blob_sha": "e140b53cd79583afd9425d8ace936b56a68c1fc4"
+    },
+    {
+      "title": "Sending JSON Encoded Data",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/quickstart/",
+      "section": "Sending JSON Encoded Data",
+      "text": "Form encoded data is okay if all you need is a simple key-value data structure. For more complicated data structures you'll often want to use JSON encoding instead.",
+      "summary": "Form encoded data is okay if all you need is a simple key-value data structure. For more complicated data structures you'll often want to use JSON encoding instead.",
+      "source_path": "docs/quickstart.md",
+      "source_blob_sha": "e140b53cd79583afd9425d8ace936b56a68c1fc4"
+    },
+    {
+      "title": "Sending Binary Request Data",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/quickstart/",
+      "section": "Sending Binary Request Data",
+      "text": "For other encodings, you should use the content=... parameter, passing either a bytes type or a generator that yields bytes. You may also want to set a custom Content-Type header when uploading binary data.",
+      "summary": "For other encodings, you should use the content=... parameter, passing either a bytes type or a generator that yields bytes. You may also want to set a custom Content-Type header when uploading binary data.",
+      "source_path": "docs/quickstart.md",
+      "source_blob_sha": "e140b53cd79583afd9425d8ace936b56a68c1fc4"
+    },
+    {
+      "title": "Response Status Codes",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/quickstart/",
+      "section": "Response Status Codes",
+      "text": "We can inspect the HTTP status code of the response: HTTPX also includes an easy shortcut for accessing status codes by their text phrase. We can raise an exception for any responses which are not a 2xx success code: Any successful response codes will return the Response instance rather than raising an exception. The method returns the response instance, allowing you to use it inline. For example:",
+      "summary": "We can inspect the HTTP status code of the response: HTTPX also includes an easy shortcut for accessing status codes by their text phrase. We can raise an exception for any responses which are not a 2xx success code: Any",
+      "source_path": "docs/quickstart.md",
+      "source_blob_sha": "e140b53cd79583afd9425d8ace936b56a68c1fc4"
+    },
+    {
+      "title": "Response Headers",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/quickstart/",
+      "section": "Response Headers",
+      "text": "The response headers are available as a dictionary-like interface. The Headers data type is case-insensitive, so you can use any capitalization. Multiple values for a single response header are represented as a single comma-separated value, as per RFC 7230: > A recipient MAY combine multiple header fields with the same field name into one “field-name: field-value” pair, without changing the semantics of the message, by appending each subsequent field-value to the combined field value in order, separated by a comma.",
+      "summary": "The response headers are available as a dictionary-like interface. The Headers data type is case-insensitive, so you can use any capitalization. Multiple values for a single response header are represented as a single co",
+      "source_path": "docs/quickstart.md",
+      "source_blob_sha": "e140b53cd79583afd9425d8ace936b56a68c1fc4"
+    },
+    {
+      "title": "Streaming Responses",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/quickstart/",
+      "section": "Streaming Responses",
+      "text": "For large downloads you may want to use streaming responses that do not load the entire response body into memory at once. You can stream the binary content of the response... Or the text of the response... Or stream the text, on a line-by-line basis... HTTPX will use universal line endings, normalising all cases to \\n. In some cases you might want to access the raw bytes on the response without applying any HTTP content decoding. In this case any content encoding that the web server has applied such as gzip, deflate, brotli, or zstd will not be automatically decoded. If you're using streaming responses in any of these ways then the response.content and response.text attributes will not be available, and will raise errors if accessed. However you can also use the response streaming functionality to conditiona",
+      "summary": "For large downloads you may want to use streaming responses that do not load the entire response body into memory at once. You can stream the binary content of the response... Or the text of the response... Or stream the",
+      "source_path": "docs/quickstart.md",
+      "source_blob_sha": "e140b53cd79583afd9425d8ace936b56a68c1fc4"
+    },
+    {
+      "title": "Cookies",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/quickstart/",
+      "section": "Cookies",
+      "text": "Any cookies that are set on the response can be easily accessed: To include cookies in an outgoing request, use the cookies parameter: Cookies are returned in a Cookies instance, which is a dict-like data structure with additional API for accessing cookies by their domain or path.",
+      "summary": "Any cookies that are set on the response can be easily accessed: To include cookies in an outgoing request, use the cookies parameter: Cookies are returned in a Cookies instance, which is a dict-like data structure with ",
+      "source_path": "docs/quickstart.md",
+      "source_blob_sha": "e140b53cd79583afd9425d8ace936b56a68c1fc4"
+    },
+    {
+      "title": "timeouts",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/timeouts/",
+      "section": "Overview",
+      "text": "HTTPX is careful to enforce timeouts everywhere by default. The default behavior is to raise a TimeoutException after 5 seconds of network inactivity.",
+      "summary": "HTTPX is careful to enforce timeouts everywhere by default. The default behavior is to raise a TimeoutException after 5 seconds of network inactivity.",
+      "source_path": "docs/advanced/timeouts.md",
+      "source_blob_sha": "aedcfb627f5139901638ebf8de30216c2640591e"
+    },
+    {
+      "title": "Setting a default timeout on a client",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/timeouts/",
+      "section": "Setting a default timeout on a client",
+      "text": "You can set a timeout on a client instance, which results in the given timeout being used as the default for requests made with this client:",
+      "summary": "You can set a timeout on a client instance, which results in the given timeout being used as the default for requests made with this client:",
+      "source_path": "docs/advanced/timeouts.md",
+      "source_blob_sha": "aedcfb627f5139901638ebf8de30216c2640591e"
+    },
+    {
+      "title": "Fine tuning the configuration",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/timeouts/",
+      "section": "Fine tuning the configuration",
+      "text": "HTTPX also allows you to specify the timeout behavior in more fine grained detail. There are four different types of timeouts that may occur. These are connect, read, write, and pool timeouts. The connect timeout specifies the maximum amount of time to wait until a socket connection to the requested host is established. If HTTPX is unable to connect within this time frame, a ConnectTimeout exception is raised. The read timeout specifies the maximum duration to wait for a chunk of data to be received (for example, a chunk of the response body). If HTTPX is unable to receive data within this time frame, a ReadTimeout exception is raised. The write timeout specifies the maximum duration to wait for a chunk of data to be sent (for example, a chunk of the request body). If HTTPX is unable to send data within this ",
+      "summary": "HTTPX also allows you to specify the timeout behavior in more fine grained detail. There are four different types of timeouts that may occur. These are connect, read, write, and pool timeouts. The connect timeout specifi",
+      "source_path": "docs/advanced/timeouts.md",
+      "source_blob_sha": "aedcfb627f5139901638ebf8de30216c2640591e"
+    },
+    {
+      "title": "A client with a 60s timeout for connecting, and a 10s timeout elsewhere.",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/timeouts/",
+      "section": "A client with a 60s timeout for connecting, and a 10s timeout elsewhere.",
+      "text": "timeout = httpx.Timeout(10.0, connect=60.0) client = httpx.Client(timeout=timeout) response = client.get('http://example.com/')",
+      "summary": "timeout = httpx.Timeout(10.0, connect=60.0) client = httpx.Client(timeout=timeout) response = client.get('http://example.com/')",
+      "source_path": "docs/advanced/timeouts.md",
+      "source_blob_sha": "aedcfb627f5139901638ebf8de30216c2640591e"
+    },
+    {
+      "title": "clients",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/clients/",
+      "section": "Overview",
+      "text": "!!! hint If you are coming from Requests, httpx.Client() is what you can use instead of requests.Session().",
+      "summary": "!!! hint If you are coming from Requests, httpx.Client() is what you can use instead of requests.Session().",
+      "source_path": "docs/advanced/clients.md",
+      "source_blob_sha": "90969cefda100f94460f9eef3610b780c68eefdd"
+    },
+    {
+      "title": "Why use a Client?",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/clients/",
+      "section": "Why use a Client?",
+      "text": "!!! note \"TL;DR\" If you do anything more than experimentation, one-off scripts, or prototypes, then you should use a Client instance. More efficient usage of network resources When you make requests using the top-level API as documented in the Quickstart guide, HTTPX has to establish a new connection for every single request (connections are not reused). As the number of requests to a host increases, this quickly becomes inefficient. On the other hand, a Client instance uses HTTP connection pooling. This means that when you make several requests to the same host, the Client will reuse the underlying TCP connection, instead of recreating one for every single request. This can bring significant performance improvements compared to using the top-level API, including: - Reduced latency across requests (no handsha",
+      "summary": "!!! note \"TL;DR\" If you do anything more than experimentation, one-off scripts, or prototypes, then you should use a Client instance. More efficient usage of network resources When you make requests using the top-level A",
+      "source_path": "docs/advanced/clients.md",
+      "source_blob_sha": "90969cefda100f94460f9eef3610b780c68eefdd"
+    },
+    {
+      "title": "Usage",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/clients/",
+      "section": "Usage",
+      "text": "The recommended way to use a Client is as a context manager. This will ensure that connections are properly cleaned up when leaving the with block: Alternatively, you can explicitly close the connection pool without block-usage using .close():",
+      "summary": "The recommended way to use a Client is as a context manager. This will ensure that connections are properly cleaned up when leaving the with block: Alternatively, you can explicitly close the connection pool without bloc",
+      "source_path": "docs/advanced/clients.md",
+      "source_blob_sha": "90969cefda100f94460f9eef3610b780c68eefdd"
+    },
+    {
+      "title": "Making requests",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/clients/",
+      "section": "Making requests",
+      "text": "Once you have a Client, you can send requests using .get(), .post(), etc. For example: These methods accept the same arguments as httpx.get(), httpx.post(), etc. This means that all features documented in the Quickstart guide are also available at the client level. For example, to send a request with custom headers:",
+      "summary": "Once you have a Client, you can send requests using .get(), .post(), etc. For example: These methods accept the same arguments as httpx.get(), httpx.post(), etc. This means that all features documented in the Quickstart ",
+      "source_path": "docs/advanced/clients.md",
+      "source_blob_sha": "90969cefda100f94460f9eef3610b780c68eefdd"
+    },
+    {
+      "title": "Sharing configuration across requests",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/clients/",
+      "section": "Sharing configuration across requests",
+      "text": "Clients allow you to apply configuration to all outgoing requests by passing parameters to the Client constructor. For example, to apply a set of custom headers on every request:",
+      "summary": "Clients allow you to apply configuration to all outgoing requests by passing parameters to the Client constructor. For example, to apply a set of custom headers on every request:",
+      "source_path": "docs/advanced/clients.md",
+      "source_blob_sha": "90969cefda100f94460f9eef3610b780c68eefdd"
+    },
+    {
+      "title": "Merging of configuration",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/clients/",
+      "section": "Merging of configuration",
+      "text": "When a configuration option is provided at both the client-level and request-level, one of two things can happen: - For headers, query parameters and cookies, the values are combined together. For example: - For all other parameters, the request-level value takes priority. For example: If you need finer-grained control on the merging of client-level and request-level parameters, see Request instances.",
+      "summary": "When a configuration option is provided at both the client-level and request-level, one of two things can happen: - For headers, query parameters and cookies, the values are combined together. For example: - For all othe",
+      "source_path": "docs/advanced/clients.md",
+      "source_blob_sha": "90969cefda100f94460f9eef3610b780c68eefdd"
+    },
+    {
+      "title": "Other Client-only configuration options",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/clients/",
+      "section": "Other Client-only configuration options",
+      "text": "Additionally, Client accepts some configuration options that aren't available at the request level. For example, baseurl allows you to prepend an URL to all outgoing requests: For a list of all available client parameters, see the Client API reference. ---",
+      "summary": "Additionally, Client accepts some configuration options that aren't available at the request level. For example, baseurl allows you to prepend an URL to all outgoing requests: For a list of all available client parameter",
+      "source_path": "docs/advanced/clients.md",
+      "source_blob_sha": "90969cefda100f94460f9eef3610b780c68eefdd"
+    },
+    {
+      "title": "Request instances",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/clients/",
+      "section": "Request instances",
+      "text": "For maximum control on what gets sent over the wire, HTTPX supports building explicit Request instances: To dispatch a Request instance across to the network, create a Client instance and use .send(): If you need to mix client-level and request-level options in a way that is not supported by the default Merging of parameters, you can use .buildrequest() and then make arbitrary modifications to the Request instance. For example:",
+      "summary": "For maximum control on what gets sent over the wire, HTTPX supports building explicit Request instances: To dispatch a Request instance across to the network, create a Client instance and use .send(): If you need to mix ",
+      "source_path": "docs/advanced/clients.md",
+      "source_blob_sha": "90969cefda100f94460f9eef3610b780c68eefdd"
+    },
+    {
+      "title": "Monitoring download progress",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/clients/",
+      "section": "Monitoring download progress",
+      "text": "If you need to monitor download progress of large responses, you can use response streaming and inspect the response.numbytesdownloaded property. This interface is required for properly determining download progress, because the total number of bytes returned by response.content or response.itercontent() will not always correspond with the raw content length of the response if HTTP response compression is being used. For example, showing a progress bar using the tqdm library while a response is being downloaded could be done like this… !tqdm progress bar Or an alternate example, this time using the rich library… !rich progress bar",
+      "summary": "If you need to monitor download progress of large responses, you can use response streaming and inspect the response.numbytesdownloaded property. This interface is required for properly determining download progress, bec",
+      "source_path": "docs/advanced/clients.md",
+      "source_blob_sha": "90969cefda100f94460f9eef3610b780c68eefdd"
+    },
+    {
+      "title": "Monitoring upload progress",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/clients/",
+      "section": "Monitoring upload progress",
+      "text": "If you need to monitor upload progress of large responses, you can use request content generator streaming. For example, showing a progress bar using the tqdm library. !tqdm progress bar",
+      "summary": "If you need to monitor upload progress of large responses, you can use request content generator streaming. For example, showing a progress bar using the tqdm library. !tqdm progress bar",
+      "source_path": "docs/advanced/clients.md",
+      "source_blob_sha": "90969cefda100f94460f9eef3610b780c68eefdd"
+    },
+    {
+      "title": "Multipart file encoding",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/clients/",
+      "section": "Multipart file encoding",
+      "text": "As mentioned in the quickstart multipart file encoding is available by passing a dictionary with the name of the payloads as keys and either tuple of elements or a file-like object or a string as values. More specifically, if a tuple is used as a value, it must have between 2 and 3 elements: - The first element is an optional file name which can be set to None. - The second element may be a file-like object or a string which will be automatically encoded in UTF-8. - An optional third element can be used to specify the MIME type of the file being uploaded. If not specified HTTPX will attempt to guess the MIME type based on the file name, with unknown file extensions defaulting to \"application/octet-stream\". If the file name is explicitly set to None then HTTPX will not include a content-type MIME header field.",
+      "summary": "As mentioned in the quickstart multipart file encoding is available by passing a dictionary with the name of the payloads as keys and either tuple of elements or a file-like object or a string as values. More specificall",
+      "source_path": "docs/advanced/clients.md",
+      "source_blob_sha": "90969cefda100f94460f9eef3610b780c68eefdd"
+    },
+    {
+      "title": "Async Support",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/async/",
+      "section": "Async Support",
+      "text": "HTTPX offers a standard synchronous API by default, but also gives you the option of an async client if you need it. Async is a concurrency model that is far more efficient than multi-threading, and can provide significant performance benefits and enable the use of long-lived network connections such as WebSockets. If you're working with an async web framework then you'll also want to use an async client for sending outgoing HTTP requests.",
+      "summary": "HTTPX offers a standard synchronous API by default, but also gives you the option of an async client if you need it. Async is a concurrency model that is far more efficient than multi-threading, and can provide significa",
+      "source_path": "docs/async.md",
+      "source_blob_sha": "f01715d84f6a0c4b8d74bde21b07001cf90d674c"
+    },
+    {
+      "title": "Making Async requests",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/async/",
+      "section": "Making Async requests",
+      "text": "To make asynchronous requests, you'll need an AsyncClient. !!! tip Use IPython or Python 3.9+ with python -m asyncio to try this code interactively, as they support executing async/await expressions in the console.",
+      "summary": "To make asynchronous requests, you'll need an AsyncClient. !!! tip Use IPython or Python 3.9+ with python -m asyncio to try this code interactively, as they support executing async/await expressions in the console.",
+      "source_path": "docs/async.md",
+      "source_blob_sha": "f01715d84f6a0c4b8d74bde21b07001cf90d674c"
+    },
+    {
+      "title": "Making requests",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/async/",
+      "section": "Making requests",
+      "text": "The request methods are all async, so you should use response = await client.get(...) style for all of the following: AsyncClient.get(url, ...) AsyncClient.options(url, ...) AsyncClient.head(url, ...) AsyncClient.post(url, ...) AsyncClient.put(url, ...) AsyncClient.patch(url, ...) AsyncClient.delete(url, ...) AsyncClient.request(method, url, ...) AsyncClient.send(request, ...)",
+      "summary": "The request methods are all async, so you should use response = await client.get(...) style for all of the following: AsyncClient.get(url, ...) AsyncClient.options(url, ...) AsyncClient.head(url, ...) AsyncClient.post(ur",
+      "source_path": "docs/async.md",
+      "source_blob_sha": "f01715d84f6a0c4b8d74bde21b07001cf90d674c"
+    },
+    {
+      "title": "Opening and closing clients",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/async/",
+      "section": "Opening and closing clients",
+      "text": "Use async with httpx.AsyncClient() if you want a context-managed client... !!! warning In order to get the most benefit from connection pooling, make sure you're not instantiating multiple client instances - for example by using async with inside a \"hot loop\". This can be achieved either by having a single scoped client that's passed throughout wherever it's needed, or by having a single global client instance. Alternatively, use await client.aclose() if you want to close a client explicitly:",
+      "summary": "Use async with httpx.AsyncClient() if you want a context-managed client... !!! warning In order to get the most benefit from connection pooling, make sure you're not instantiating multiple client instances - for example ",
+      "source_path": "docs/async.md",
+      "source_blob_sha": "f01715d84f6a0c4b8d74bde21b07001cf90d674c"
+    },
+    {
+      "title": "Streaming responses",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/async/",
+      "section": "Streaming responses",
+      "text": "The AsyncClient.stream(method, url, ...) method is an async context block. The async response streaming methods are: Response.aread() - For conditionally reading a response inside a stream block. Response.aiterbytes() - For streaming the response content as bytes. Response.aitertext() - For streaming the response content as text. Response.aiterlines() - For streaming the response content as lines of text. Response.aiterraw() - For streaming the raw response bytes, without applying content decoding. Response.aclose() - For closing the response. You don't usually need this, since .stream block closes the response automatically on exit. For situations when context block usage is not practical, it is possible to enter \"manual mode\" by sending a Request instance using client.send(..., stream=True). Example in the ",
+      "summary": "The AsyncClient.stream(method, url, ...) method is an async context block. The async response streaming methods are: Response.aread() - For conditionally reading a response inside a stream block. Response.aiterbytes() - ",
+      "source_path": "docs/async.md",
+      "source_blob_sha": "f01715d84f6a0c4b8d74bde21b07001cf90d674c"
+    },
+    {
+      "title": "Streaming requests",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/async/",
+      "section": "Streaming requests",
+      "text": "When sending a streaming request body with an AsyncClient instance, you should use an async bytes generator instead of a bytes generator:",
+      "summary": "When sending a streaming request body with an AsyncClient instance, you should use an async bytes generator instead of a bytes generator:",
+      "source_path": "docs/async.md",
+      "source_blob_sha": "f01715d84f6a0c4b8d74bde21b07001cf90d674c"
+    },
+    {
+      "title": "Explicit transport instances",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/async/",
+      "section": "Explicit transport instances",
+      "text": "When instantiating a transport instance directly, you need to use httpx.AsyncHTTPTransport. For instance:",
+      "summary": "When instantiating a transport instance directly, you need to use httpx.AsyncHTTPTransport. For instance:",
+      "source_path": "docs/async.md",
+      "source_blob_sha": "f01715d84f6a0c4b8d74bde21b07001cf90d674c"
+    },
+    {
+      "title": "Supported async environments",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/async/",
+      "section": "Supported async environments",
+      "text": "HTTPX supports either asyncio or trio as an async environment. It will auto-detect which of those two to use as the backend for socket operations and concurrency primitives.",
+      "summary": "HTTPX supports either asyncio or trio as an async environment. It will auto-detect which of those two to use as the backend for socket operations and concurrency primitives.",
+      "source_path": "docs/async.md",
+      "source_blob_sha": "f01715d84f6a0c4b8d74bde21b07001cf90d674c"
+    },
+    {
+      "title": "Trio",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/async/",
+      "section": "Trio",
+      "text": "Trio is an alternative async library, designed around the the principles of structured concurrency. !!! important The trio package must be installed to use the Trio backend.",
+      "summary": "Trio is an alternative async library, designed around the the principles of structured concurrency. !!! important The trio package must be installed to use the Trio backend.",
+      "source_path": "docs/async.md",
+      "source_blob_sha": "f01715d84f6a0c4b8d74bde21b07001cf90d674c"
+    },
+    {
+      "title": "AnyIO",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/async/",
+      "section": "AnyIO",
+      "text": "AnyIO is an asynchronous networking and concurrency library that works on top of either asyncio or trio. It blends in with native libraries of your chosen backend (defaults to asyncio).",
+      "summary": "AnyIO is an asynchronous networking and concurrency library that works on top of either asyncio or trio. It blends in with native libraries of your chosen backend (defaults to asyncio).",
+      "source_path": "docs/async.md",
+      "source_blob_sha": "f01715d84f6a0c4b8d74bde21b07001cf90d674c"
+    },
+    {
+      "title": "authentication",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/authentication/",
+      "section": "Overview",
+      "text": "Authentication can either be included on a per-request basis... Or configured on the client instance, ensuring that all outgoing requests will include authentication credentials...",
+      "summary": "Authentication can either be included on a per-request basis... Or configured on the client instance, ensuring that all outgoing requests will include authentication credentials...",
+      "source_path": "docs/advanced/authentication.md",
+      "source_blob_sha": "63d26e5f46f87f01c4e01d9416268a4177a3d60b"
+    },
+    {
+      "title": "Basic authentication",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/authentication/",
+      "section": "Basic authentication",
+      "text": "HTTP basic authentication is an unencrypted authentication scheme that uses a simple encoding of the username and password in the request Authorization header. Since it is unencrypted it should typically only be used over https, although this is not strictly enforced.",
+      "summary": "HTTP basic authentication is an unencrypted authentication scheme that uses a simple encoding of the username and password in the request Authorization header. Since it is unencrypted it should typically only be used ove",
+      "source_path": "docs/advanced/authentication.md",
+      "source_blob_sha": "63d26e5f46f87f01c4e01d9416268a4177a3d60b"
+    },
+    {
+      "title": "Digest authentication",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/authentication/",
+      "section": "Digest authentication",
+      "text": "HTTP digest authentication is a challenge-response authentication scheme. Unlike basic authentication it provides encryption, and can be used over unencrypted http connections. It requires an additional round-trip in order to negotiate the authentication.",
+      "summary": "HTTP digest authentication is a challenge-response authentication scheme. Unlike basic authentication it provides encryption, and can be used over unencrypted http connections. It requires an additional round-trip in ord",
+      "source_path": "docs/advanced/authentication.md",
+      "source_blob_sha": "63d26e5f46f87f01c4e01d9416268a4177a3d60b"
+    },
+    {
+      "title": "NetRC authentication",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/authentication/",
+      "section": "NetRC authentication",
+      "text": "HTTPX can be configured to use a .netrc config file for authentication. The .netrc config file allows authentication credentials to be associated with specified hosts. When a request is made to a host that is found in the netrc file, the username and password will be included using HTTP basic authentication. Example .netrc file: Some examples of configuring .netrc authentication with httpx. Use the default .netrc file in the users home directory: Use an explicit path to a .netrc file: Use the NETRC environment variable to configure a path to the .netrc file, or fallback to the default. The NetRCAuth() class uses the netrc.netrc() function from the Python standard library. See the documentation there for more details on exceptions that may be raised if the .netrc file is not found, or cannot be parsed.",
+      "summary": "HTTPX can be configured to use a .netrc config file for authentication. The .netrc config file allows authentication credentials to be associated with specified hosts. When a request is made to a host that is found in th",
+      "source_path": "docs/advanced/authentication.md",
+      "source_blob_sha": "63d26e5f46f87f01c4e01d9416268a4177a3d60b"
+    },
+    {
+      "title": "Custom authentication schemes",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/authentication/",
+      "section": "Custom authentication schemes",
+      "text": "When issuing requests or instantiating a client, the auth argument can be used to pass an authentication scheme to use. The auth argument may be one of the following... A two-tuple of username/password, to be used with basic authentication. An instance of httpx.BasicAuth(), httpx.DigestAuth(), or httpx.NetRCAuth(). A callable, accepting a request and returning an authenticated request instance. An instance of subclasses of httpx.Auth. The most involved of these is the last, which allows you to create authentication flows involving one or more requests. A subclass of httpx.Auth should implement def authflow(request), and yield any requests that need to be made... If the auth flow requires more than one request, you can issue multiple yields, and obtain the response in each case... Custom authentication classes",
+      "summary": "When issuing requests or instantiating a client, the auth argument can be used to pass an authentication scheme to use. The auth argument may be one of the following... A two-tuple of username/password, to be used with b",
+      "source_path": "docs/advanced/authentication.md",
+      "source_blob_sha": "63d26e5f46f87f01c4e01d9416268a4177a3d60b"
+    },
+    {
+      "title": "transports",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/transports/",
+      "section": "Overview",
+      "text": "HTTPX's Client also accepts a transport argument. This argument allows you to provide a custom Transport object that will be used to perform the actual sending of the requests.",
+      "summary": "HTTPX's Client also accepts a transport argument. This argument allows you to provide a custom Transport object that will be used to perform the actual sending of the requests.",
+      "source_path": "docs/advanced/transports.md",
+      "source_blob_sha": "d4e7615d380b94a269babb492ac2dbfe2e39d57e"
+    },
+    {
+      "title": "HTTP Transport",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/transports/",
+      "section": "HTTP Transport",
+      "text": "For some advanced configuration you might need to instantiate a transport class directly, and pass it to the client instance. One example is the localaddress configuration which is only available via this low-level API. Connection retries are also available via this interface. Requests will be retried the given number of times in case an httpx.ConnectError or an httpx.ConnectTimeout occurs, allowing smoother operation under flaky networks. If you need other forms of retry behaviors, such as handling read/write errors or reacting to 503 Service Unavailable, consider general-purpose tools such as tenacity. Similarly, instantiating a transport directly provides a uds option for connecting via a Unix Domain Socket that is only available via this low-level API:",
+      "summary": "For some advanced configuration you might need to instantiate a transport class directly, and pass it to the client instance. One example is the localaddress configuration which is only available via this low-level API. ",
+      "source_path": "docs/advanced/transports.md",
+      "source_blob_sha": "d4e7615d380b94a269babb492ac2dbfe2e39d57e"
+    },
+    {
+      "title": "WSGI Transport",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/transports/",
+      "section": "WSGI Transport",
+      "text": "You can configure an httpx client to call directly into a Python web application using the WSGI protocol. This is particularly useful for two main use-cases: Using httpx as a client inside test cases. Mocking out external services during tests or in dev or staging environments.",
+      "summary": "You can configure an httpx client to call directly into a Python web application using the WSGI protocol. This is particularly useful for two main use-cases: Using httpx as a client inside test cases. Mocking out externa",
+      "source_path": "docs/advanced/transports.md",
+      "source_blob_sha": "d4e7615d380b94a269babb492ac2dbfe2e39d57e"
+    },
+    {
+      "title": "Configuration",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/transports/",
+      "section": "Configuration",
+      "text": "For some more complex cases you might need to customize the WSGI transport. This allows you to: Inspect 500 error responses rather than raise exceptions by setting raiseappexceptions=False. Mount the WSGI application at a subpath by setting scriptname (WSGI). Use a given client address for requests by setting remoteaddr (WSGI). For example: python",
+      "summary": "For some more complex cases you might need to customize the WSGI transport. This allows you to: Inspect 500 error responses rather than raise exceptions by setting raiseappexceptions=False. Mount the WSGI application at ",
+      "source_path": "docs/advanced/transports.md",
+      "source_blob_sha": "d4e7615d380b94a269babb492ac2dbfe2e39d57e"
+    },
+    {
+      "title": "Instantiate a client that makes WSGI requests with a client IP of \"1.2.3.4\".",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/transports/",
+      "section": "Instantiate a client that makes WSGI requests with a client IP of \"1.2.3.4\".",
+      "text": "transport = httpx.WSGITransport(app=app, remoteaddr=\"1.2.3.4\") with httpx.Client(transport=transport, baseurl=\"http://testserver\") as client: ...",
+      "summary": "transport = httpx.WSGITransport(app=app, remoteaddr=\"1.2.3.4\") with httpx.Client(transport=transport, baseurl=\"http://testserver\") as client: ...",
+      "source_path": "docs/advanced/transports.md",
+      "source_blob_sha": "d4e7615d380b94a269babb492ac2dbfe2e39d57e"
+    },
+    {
+      "title": "ASGI Transport",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/transports/",
+      "section": "ASGI Transport",
+      "text": "You can configure an httpx client to call directly into an async Python web application using the ASGI protocol. This is particularly useful for two main use-cases: Using httpx as a client inside test cases. Mocking out external services during tests or in dev or staging environments.",
+      "summary": "You can configure an httpx client to call directly into an async Python web application using the ASGI protocol. This is particularly useful for two main use-cases: Using httpx as a client inside test cases. Mocking out ",
+      "source_path": "docs/advanced/transports.md",
+      "source_blob_sha": "d4e7615d380b94a269babb492ac2dbfe2e39d57e"
+    },
+    {
+      "title": "Example",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/transports/",
+      "section": "Example",
+      "text": "Let's take this Starlette application as an example: We can make requests directly against the application, like so:",
+      "summary": "Let's take this Starlette application as an example: We can make requests directly against the application, like so:",
+      "source_path": "docs/advanced/transports.md",
+      "source_blob_sha": "d4e7615d380b94a269babb492ac2dbfe2e39d57e"
+    },
+    {
+      "title": "Configuration",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/transports/",
+      "section": "Configuration",
+      "text": "For some more complex cases you might need to customise the ASGI transport. This allows you to: Inspect 500 error responses rather than raise exceptions by setting raiseappexceptions=False. Mount the ASGI application at a subpath by setting rootpath. Use a given client address for requests by setting client. For example: python",
+      "summary": "For some more complex cases you might need to customise the ASGI transport. This allows you to: Inspect 500 error responses rather than raise exceptions by setting raiseappexceptions=False. Mount the ASGI application at ",
+      "source_path": "docs/advanced/transports.md",
+      "source_blob_sha": "d4e7615d380b94a269babb492ac2dbfe2e39d57e"
+    },
+    {
+      "title": "on port 123.",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/transports/",
+      "section": "on port 123.",
+      "text": "transport = httpx.ASGITransport(app=app, client=(\"1.2.3.4\", 123)) async with httpx.AsyncClient(transport=transport, baseurl=\"http://testserver\") as client: ... See the ASGI documentation for more details on the client and rootpath keys.",
+      "summary": "transport = httpx.ASGITransport(app=app, client=(\"1.2.3.4\", 123)) async with httpx.AsyncClient(transport=transport, baseurl=\"http://testserver\") as client: ... See the ASGI documentation for more details on the client an",
+      "source_path": "docs/advanced/transports.md",
+      "source_blob_sha": "d4e7615d380b94a269babb492ac2dbfe2e39d57e"
+    },
+    {
+      "title": "ASGI startup and shutdown",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/transports/",
+      "section": "ASGI startup and shutdown",
+      "text": "It is not in the scope of HTTPX to trigger ASGI lifespan events of your app. However it is suggested to use LifespanManager from asgi-lifespan in pair with AsyncClient.",
+      "summary": "It is not in the scope of HTTPX to trigger ASGI lifespan events of your app. However it is suggested to use LifespanManager from asgi-lifespan in pair with AsyncClient.",
+      "source_path": "docs/advanced/transports.md",
+      "source_blob_sha": "d4e7615d380b94a269babb492ac2dbfe2e39d57e"
+    },
+    {
+      "title": "Custom transports",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/transports/",
+      "section": "Custom transports",
+      "text": "A transport instance must implement the low-level Transport API which deals with sending a single request, and returning a response. You should either subclass httpx.BaseTransport to implement a transport to use with Client, or subclass httpx.AsyncBaseTransport to implement a transport to use with AsyncClient. At the layer of the transport API we're using the familiar Request and Response models. See the handlerequest and handleasyncrequest docstrings for more details on the specifics of the Transport API. A complete example of a custom transport implementation would be: Or this example, which uses a custom transport and httpx.Mounts to always redirect http:// requests. python class HTTPSRedirect(httpx.BaseTransport): \"\"\" A transport that always redirects to HTTPS. \"\"\" def handlerequest(self, request): url = ",
+      "summary": "A transport instance must implement the low-level Transport API which deals with sending a single request, and returning a response. You should either subclass httpx.BaseTransport to implement a transport to use with Cli",
+      "source_path": "docs/advanced/transports.md",
+      "source_blob_sha": "d4e7615d380b94a269babb492ac2dbfe2e39d57e"
+    },
+    {
+      "title": "A client where any http requests are always redirected to https",
+      "source": "HTTPX",
+      "url": "https://www.python-httpx.org/advanced/transports/",
+      "section": "A client where any http requests are always redirected to https",
+      "text": "transport = httpx.Mounts({ 'http://': HTTPSRedirect() 'https://': httpx.HTTPTransport() }) client = httpx.Client(transport=transport) python class DebuggingTransport(httpx.BaseTransport): def init(self, kwargs): self.wrapper = httpx.HTTPTransport(kwargs) def handlerequest(self, request): print(f\">>> {request}\") response = self.wrapper.handlerequest(request) print(f\"<<< {response}\") return response def close(self): self.wrapper.close() transport = DebuggingTransport() client = httpx.Client(transport=transport) python class ProxyRoundRobin(httpx.BaseTransport): def init(self, proxies, kwargs): self.transports = [ httpx.HTTPTransport(proxy=proxy, kwargs) for proxy in proxies ] self.idx = 0 def handlerequest(self, request): transport = self.transports[self.idx] self.idx = (self.idx + 1) % len(self.transports) ret",
+      "summary": "transport = httpx.Mounts({ 'http://': HTTPSRedirect() 'https://': httpx.HTTPTransport() }) client = httpx.Client(transport=transport) python class DebuggingTransport(httpx.BaseTransport): def init(self, kwargs): self.wra",
+      "source_path": "docs/advanced/transports.md",
+      "source_blob_sha": "d4e7615d380b94a269babb492ac2dbfe2e39d57e"
+    }
+  ],
+  "sources": [
+    {
+      "path": "docs/quickstart.md",
+      "url": "https://www.python-httpx.org/quickstart/",
+      "blob_sha": "e140b53cd79583afd9425d8ace936b56a68c1fc4",
+      "sections": 12
+    },
+    {
+      "path": "docs/advanced/timeouts.md",
+      "url": "https://www.python-httpx.org/advanced/timeouts/",
+      "blob_sha": "aedcfb627f5139901638ebf8de30216c2640591e",
+      "sections": 4
+    },
+    {
+      "path": "docs/advanced/clients.md",
+      "url": "https://www.python-httpx.org/advanced/clients/",
+      "blob_sha": "90969cefda100f94460f9eef3610b780c68eefdd",
+      "sections": 11
+    },
+    {
+      "path": "docs/async.md",
+      "url": "https://www.python-httpx.org/async/",
+      "blob_sha": "f01715d84f6a0c4b8d74bde21b07001cf90d674c",
+      "sections": 10
+    },
+    {
+      "path": "docs/advanced/authentication.md",
+      "url": "https://www.python-httpx.org/advanced/authentication/",
+      "blob_sha": "63d26e5f46f87f01c4e01d9416268a4177a3d60b",
+      "sections": 5
+    },
+    {
+      "path": "docs/advanced/transports.md",
+      "url": "https://www.python-httpx.org/advanced/transports/",
+      "blob_sha": "d4e7615d380b94a269babb492ac2dbfe2e39d57e",
+      "sections": 12
+    }
+  ]
+}

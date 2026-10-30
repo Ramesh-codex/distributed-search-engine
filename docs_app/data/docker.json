@@ -1,0 +1,513 @@
+{
+  "source": "Docker",
+  "license": "Apache-2.0",
+  "snapshot_date": "2026-10-30",
+  "docs": [
+    {
+      "title": "Dockerfile",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/dockerfile/",
+      "section": "Dockerfile",
+      "text": "It all starts with a Dockerfile. Docker builds images by reading the instructions from a Dockerfile. A Dockerfile is a text file containing instructions for building your source code. The Dockerfile instruction syntax is defined by the specification reference in the Dockerfile reference. Here are the most common types of instructions: | Instruction | Description | | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | | FROM | Defines a base for your image. | | RUN | Executes any commands in a new layer on top of the current image and commits the result. RUN also has a shell form for running commands. |",
+      "summary": "It all starts with a Dockerfile. Docker builds images by reading the instructions from a Dockerfile. A Dockerfile is a text file containing instructions for building your source code. The Dockerfile instruction syntax is",
+      "source_path": "content/manuals/build/concepts/dockerfile.md",
+      "source_blob_sha": "1d0893c531e908bd10ee8007064c6f4f73a09712"
+    },
+    {
+      "title": "Filename",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/dockerfile/",
+      "section": "Filename",
+      "text": "The default filename to use for a Dockerfile is Dockerfile, without a file extension. Using the default name allows you to run the docker build command without having to specify additional command flags. Some projects may need distinct Dockerfiles for specific purposes. A common convention is to name these .Dockerfile. You can specify the Dockerfile filename using the --file flag for the docker build command. Refer to the docker build CLI reference to learn about the --file flag. > [!NOTE] > > We recommend using the default (Dockerfile) for your project's primary > Dockerfile.",
+      "summary": "The default filename to use for a Dockerfile is Dockerfile, without a file extension. Using the default name allows you to run the docker build command without having to specify additional command flags. Some projects ma",
+      "source_path": "content/manuals/build/concepts/dockerfile.md",
+      "source_blob_sha": "1d0893c531e908bd10ee8007064c6f4f73a09712"
+    },
+    {
+      "title": "Docker images",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/dockerfile/",
+      "section": "Docker images",
+      "text": "Docker images consist of layers. Each layer is the result of a build instruction in the Dockerfile. Layers are stacked sequentially, and each one is a delta representing the changes applied to the previous layer.",
+      "summary": "Docker images consist of layers. Each layer is the result of a build instruction in the Dockerfile. Layers are stacked sequentially, and each one is a delta representing the changes applied to the previous layer.",
+      "source_path": "content/manuals/build/concepts/dockerfile.md",
+      "source_blob_sha": "1d0893c531e908bd10ee8007064c6f4f73a09712"
+    },
+    {
+      "title": "Example",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/dockerfile/",
+      "section": "Example",
+      "text": "Here's what a typical workflow for building applications with Docker looks like. The following example code shows a small \"Hello World\" application written in Python, using the Flask framework. In order to ship and deploy this application without Docker Build, you would need to make sure that: - The required runtime dependencies are installed on the server - The Python code gets uploaded to the server's filesystem - The server starts your application, using the necessary parameters The following Dockerfile creates a container image, which has all the dependencies installed and that automatically starts your application. dockerfile",
+      "summary": "Here's what a typical workflow for building applications with Docker looks like. The following example code shows a small \"Hello World\" application written in Python, using the Flask framework. In order to ship and deplo",
+      "source_path": "content/manuals/build/concepts/dockerfile.md",
+      "source_blob_sha": "1d0893c531e908bd10ee8007064c6f4f73a09712"
+    },
+    {
+      "title": "final configuration",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/dockerfile/",
+      "section": "final configuration",
+      "text": "ENV FLASKAPP=hello EXPOSE 8000 CMD [\"flask\", \"run\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"] Here's a breakdown of what this Dockerfile does: - Dockerfile syntax - Base image - Environment setup - Comments - Installing dependencies - Copying files - Setting environment variables - Exposed ports - Starting the application",
+      "summary": "ENV FLASKAPP=hello EXPOSE 8000 CMD [\"flask\", \"run\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"] Here's a breakdown of what this Dockerfile does: - Dockerfile syntax - Base image - Environment setup - Comments - Installing dep",
+      "source_path": "content/manuals/build/concepts/dockerfile.md",
+      "source_blob_sha": "1d0893c531e908bd10ee8007064c6f4f73a09712"
+    },
+    {
+      "title": "Dockerfile syntax",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/dockerfile/",
+      "section": "Dockerfile syntax",
+      "text": "The first line to add to a Dockerfile is a # syntax parser directive. While optional, this directive instructs the Docker builder what syntax to use when parsing the Dockerfile, and allows older Docker versions with BuildKit enabled to use a specific Dockerfile frontend before starting the build. Parser directives must appear before any other comment, whitespace, or Dockerfile instruction in your Dockerfile, and should be the first line in Dockerfiles. dockerfile",
+      "summary": "The first line to add to a Dockerfile is a # syntax parser directive. While optional, this directive instructs the Docker builder what syntax to use when parsing the Dockerfile, and allows older Docker versions with Buil",
+      "source_path": "content/manuals/build/concepts/dockerfile.md",
+      "source_blob_sha": "1d0893c531e908bd10ee8007064c6f4f73a09712"
+    },
+    {
+      "title": "syntax=docker/dockerfile:1",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/dockerfile/",
+      "section": "syntax=docker/dockerfile:1",
+      "text": "> [!TIP] > > We recommend using docker/dockerfile:1, which always points to the latest > release of the version 1 syntax. BuildKit automatically checks for updates of > the syntax before building, making sure you are using the most current version.",
+      "summary": "> [!TIP] > > We recommend using docker/dockerfile:1, which always points to the latest > release of the version 1 syntax. BuildKit automatically checks for updates of > the syntax before building, making sure you are usi",
+      "source_path": "content/manuals/build/concepts/dockerfile.md",
+      "source_blob_sha": "1d0893c531e908bd10ee8007064c6f4f73a09712"
+    },
+    {
+      "title": "Base image",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/dockerfile/",
+      "section": "Base image",
+      "text": "The line following the syntax directive defines what base image to use: The FROM instruction sets your base image to the 22.04 release of Ubuntu. All instructions that follow are executed in this base image: an Ubuntu environment. The notation ubuntu:22.04, follows the name:tag standard for naming Docker images. When you build images, you use this notation to name your images. There are many public images you can leverage in your projects, by importing them into your build steps using the Dockerfile FROM instruction. Docker Hub contains a large set of official images that you can use for this purpose.",
+      "summary": "The line following the syntax directive defines what base image to use: The FROM instruction sets your base image to the 22.04 release of Ubuntu. All instructions that follow are executed in this base image: an Ubuntu en",
+      "source_path": "content/manuals/build/concepts/dockerfile.md",
+      "source_blob_sha": "1d0893c531e908bd10ee8007064c6f4f73a09712"
+    },
+    {
+      "title": "install app dependencies",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/dockerfile/",
+      "section": "install app dependencies",
+      "text": "RUN apt-get update && apt-get install -y python3 python3-pip This RUN instruction executes a shell in Ubuntu that updates the APT package index and installs Python tools in the container.",
+      "summary": "RUN apt-get update && apt-get install -y python3 python3-pip This RUN instruction executes a shell in Ubuntu that updates the APT package index and installs Python tools in the container.",
+      "source_path": "content/manuals/build/concepts/dockerfile.md",
+      "source_blob_sha": "1d0893c531e908bd10ee8007064c6f4f73a09712"
+    },
+    {
+      "title": "Comments",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/dockerfile/",
+      "section": "Comments",
+      "text": "Note the # install app dependencies line. This is a comment. Comments in Dockerfiles begin with the # symbol. As your Dockerfile evolves, comments can be instrumental to document how your Dockerfile works for any future readers and editors of the file, including your future self. > [!NOTE] > > You might've noticed that comments are denoted using the same symbol as the > syntax directive on the first line of the file. > The symbol is only interpreted as a directive if the pattern matches a > directive and appears at the beginning of the Dockerfile. Otherwise, it's > treated as a comment.",
+      "summary": "Note the # install app dependencies line. This is a comment. Comments in Dockerfiles begin with the # symbol. As your Dockerfile evolves, comments can be instrumental to document how your Dockerfile works for any future ",
+      "source_path": "content/manuals/build/concepts/dockerfile.md",
+      "source_blob_sha": "1d0893c531e908bd10ee8007064c6f4f73a09712"
+    },
+    {
+      "title": "Installing dependencies",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/dockerfile/",
+      "section": "Installing dependencies",
+      "text": "The second RUN instruction installs the flask dependency required by the Python application. A prerequisite for this instruction is that pip is installed into the build container. The first RUN command installs pip, which ensures that we can use the command to install the flask web framework.",
+      "summary": "The second RUN instruction installs the flask dependency required by the Python application. A prerequisite for this instruction is that pip is installed into the build container. The first RUN command installs pip, whic",
+      "source_path": "content/manuals/build/concepts/dockerfile.md",
+      "source_blob_sha": "1d0893c531e908bd10ee8007064c6f4f73a09712"
+    },
+    {
+      "title": "Copying files",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/dockerfile/",
+      "section": "Copying files",
+      "text": "The next instruction uses the COPY instruction to copy the hello.py file from the local build context into the root directory of our image. A build context is the set of files that you can access in Dockerfile instructions such as COPY and ADD. After the COPY instruction, the hello.py file is added to the filesystem of the build container.",
+      "summary": "The next instruction uses the COPY instruction to copy the hello.py file from the local build context into the root directory of our image. A build context is the set of files that you can access in Dockerfile instructio",
+      "source_path": "content/manuals/build/concepts/dockerfile.md",
+      "source_blob_sha": "1d0893c531e908bd10ee8007064c6f4f73a09712"
+    },
+    {
+      "title": "context",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/context/",
+      "section": "Overview",
+      "text": "The docker build and docker buildx build commands build Docker images from a Dockerfile and a context.",
+      "summary": "The docker build and docker buildx build commands build Docker images from a Dockerfile and a context.",
+      "source_path": "content/manuals/build/concepts/context.md",
+      "source_blob_sha": "88a6da1e5c423a598aa19d6d599f5d05f0df4554"
+    },
+    {
+      "title": "What is a build context?",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/context/",
+      "section": "What is a build context?",
+      "text": "The build context is the set of files that your build can access. The positional argument that you pass to the build command specifies the context that you want to use for the build: You can pass any of the following inputs as the context for a build: - The relative or absolute path to a local directory - A remote URL of a Git repository, tarball, or plain-text file - A plain-text file or tarball piped to the docker build command through standard input",
+      "summary": "The build context is the set of files that your build can access. The positional argument that you pass to the build command specifies the context that you want to use for the build: You can pass any of the following inp",
+      "source_path": "content/manuals/build/concepts/context.md",
+      "source_blob_sha": "88a6da1e5c423a598aa19d6d599f5d05f0df4554"
+    },
+    {
+      "title": "Filesystem contexts",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/context/",
+      "section": "Filesystem contexts",
+      "text": "When your build context is a local directory, a remote Git repository, or a tar file, then that becomes the set of files that the builder can access during the build. Build instructions such as COPY and ADD can refer to any of the files and directories in the context. A filesystem build context is processed recursively: - When you specify a local directory or a tarball, all subdirectories are included - When you specify a remote Git repository, the repository and all submodules are included For more information about the different types of filesystem contexts that you can use with your builds, see: - Local files - Git repositories - Remote tarballs",
+      "summary": "When your build context is a local directory, a remote Git repository, or a tar file, then that becomes the set of files that the builder can access during the build. Build instructions such as COPY and ADD can refer to ",
+      "source_path": "content/manuals/build/concepts/context.md",
+      "source_blob_sha": "88a6da1e5c423a598aa19d6d599f5d05f0df4554"
+    },
+    {
+      "title": "Text file contexts",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/context/",
+      "section": "Text file contexts",
+      "text": "When your build context is a plain-text file, the builder interprets the file as a Dockerfile. With this approach, the build doesn't use a filesystem context. For more information, see empty build context.",
+      "summary": "When your build context is a plain-text file, the builder interprets the file as a Dockerfile. With this approach, the build doesn't use a filesystem context. For more information, see empty build context.",
+      "source_path": "content/manuals/build/concepts/context.md",
+      "source_blob_sha": "88a6da1e5c423a598aa19d6d599f5d05f0df4554"
+    },
+    {
+      "title": "Local context",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/context/",
+      "section": "Local context",
+      "text": "To use a local build context, you can specify a relative or absolute filepath to the docker build command. The following example shows a build command that uses the current directory (.) as a build context: This makes files and directories in the current working directory available to the builder. The builder loads the files it needs from the build context when needed. You can also use local tarballs as build context, by piping the tarball contents to the docker build command. See Tarballs.",
+      "summary": "To use a local build context, you can specify a relative or absolute filepath to the docker build command. The following example shows a build command that uses the current directory (.) as a build context: This makes fi",
+      "source_path": "content/manuals/build/concepts/context.md",
+      "source_blob_sha": "88a6da1e5c423a598aa19d6d599f5d05f0df4554"
+    },
+    {
+      "title": "Local directories",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/context/",
+      "section": "Local directories",
+      "text": "Consider the following directory structure: Dockerfile instructions can reference and include these files in the build if you pass this directory as a context. dockerfile",
+      "summary": "Consider the following directory structure: Dockerfile instructions can reference and include these files in the build if you pass this directory as a context. dockerfile",
+      "source_path": "content/manuals/build/concepts/context.md",
+      "source_blob_sha": "88a6da1e5c423a598aa19d6d599f5d05f0df4554"
+    },
+    {
+      "title": "syntax=docker/dockerfile:1",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/context/",
+      "section": "syntax=docker/dockerfile:1",
+      "text": "FROM node:latest WORKDIR /src COPY package.json package-lock.json . RUN npm ci COPY index.ts src . console $ docker build .",
+      "summary": "FROM node:latest WORKDIR /src COPY package.json package-lock.json . RUN npm ci COPY index.ts src . console $ docker build .",
+      "source_path": "content/manuals/build/concepts/context.md",
+      "source_blob_sha": "88a6da1e5c423a598aa19d6d599f5d05f0df4554"
+    },
+    {
+      "title": "Local context with Dockerfile from stdin",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/context/",
+      "section": "Local context with Dockerfile from stdin",
+      "text": "Use the following syntax to build an image using files on your local filesystem, while using a Dockerfile from stdin. The syntax uses the -f (or --file) option to specify the Dockerfile to use, and it uses a hyphen (-) as filename to instruct Docker to read the Dockerfile from stdin. The following example uses the current directory (.) as the build context, and builds an image using a Dockerfile passed through stdin using a here-document. bash",
+      "summary": "Use the following syntax to build an image using files on your local filesystem, while using a Dockerfile from stdin. The syntax uses the -f (or --file) option to specify the Dockerfile to use, and it uses a hyphen (-) a",
+      "source_path": "content/manuals/build/concepts/context.md",
+      "source_blob_sha": "88a6da1e5c423a598aa19d6d599f5d05f0df4554"
+    },
+    {
+      "title": "and a Dockerfile passed through stdin",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/context/",
+      "section": "and a Dockerfile passed through stdin",
+      "text": "docker build -t myimage:latest -f- . <<EOF FROM busybox COPY somefile.txt ./ RUN cat /somefile.txt EOF",
+      "summary": "docker build -t myimage:latest -f- . <<EOF FROM busybox COPY somefile.txt ./ RUN cat /somefile.txt EOF",
+      "source_path": "content/manuals/build/concepts/context.md",
+      "source_blob_sha": "88a6da1e5c423a598aa19d6d599f5d05f0df4554"
+    },
+    {
+      "title": "Local tarballs",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/context/",
+      "section": "Local tarballs",
+      "text": "When you pipe a tarball to the build command, the build uses the contents of the tarball as a filesystem context. For example, given the following project directory: You can create a tarball of the directory and pipe it to the build for use as a context: The build resolves the Dockerfile from the tarball context. You can use the --file flag to specify the name and location of the Dockerfile relative to the root of the tarball. The following command builds using test.Dockerfile in the tarball:",
+      "summary": "When you pipe a tarball to the build command, the build uses the contents of the tarball as a filesystem context. For example, given the following project directory: You can create a tarball of the directory and pipe it ",
+      "source_path": "content/manuals/build/concepts/context.md",
+      "source_blob_sha": "88a6da1e5c423a598aa19d6d599f5d05f0df4554"
+    },
+    {
+      "title": "Remote context",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/context/",
+      "section": "Remote context",
+      "text": "You can specify the address of a remote Git repository, tarball, or plain-text file as your build context. - For Git repositories, the builder automatically clones the repository. See Git repositories. - For tarballs, the builder downloads and extracts the contents of the tarball. See Tarballs. If the remote tarball is a text file, the builder receives no filesystem context, and instead assumes that the remote file is a Dockerfile. See Empty build context.",
+      "summary": "You can specify the address of a remote Git repository, tarball, or plain-text file as your build context. - For Git repositories, the builder automatically clones the repository. See Git repositories. - For tarballs, th",
+      "source_path": "content/manuals/build/concepts/context.md",
+      "source_blob_sha": "88a6da1e5c423a598aa19d6d599f5d05f0df4554"
+    },
+    {
+      "title": "Git repositories",
+      "source": "Docker",
+      "url": "https://docs.docker.com/build/concepts/context/",
+      "section": "Git repositories",
+      "text": "When you pass a URL pointing to the location of a Git repository as an argument to docker build, the builder uses the repository as the build context. The builder performs a shallow clone of the repository, downloading only the HEAD commit, not the entire history. The builder recursively clones the repository and any submodules it contains. By default, the builder clones the latest commit on the default branch of the repository that you specify.",
+      "summary": "When you pass a URL pointing to the location of a Git repository as an argument to docker build, the builder uses the repository as the build context. The builder performs a shallow clone of the repository, downloading o",
+      "source_path": "content/manuals/build/concepts/context.md",
+      "source_blob_sha": "88a6da1e5c423a598aa19d6d599f5d05f0df4554"
+    },
+    {
+      "title": "networking",
+      "source": "Docker",
+      "url": "https://docs.docker.com/compose/how-tos/networking/",
+      "section": "Overview",
+      "text": "Compose handles networking for you by default, but gives you fine-grained control when you need it. This page explains how the default network works and how containers discover each other by name. It also covers when and how to define custom networks, connect services across separate Compose projects, map custom hostnames, and debug connectivity issues.",
+      "summary": "Compose handles networking for you by default, but gives you fine-grained control when you need it. This page explains how the default network works and how containers discover each other by name. It also covers when and",
+      "source_path": "content/manuals/compose/how-tos/networking.md",
+      "source_blob_sha": "c025a080350fa308d827e02da3124b356e4589f3"
+    },
+    {
+      "title": "Default network and service discovery",
+      "source": "Docker",
+      "url": "https://docs.docker.com/compose/how-tos/networking/",
+      "section": "Default network and service discovery",
+      "text": "By default, Compose sets up a single network for your app. Each container for a service joins the default network and is both reachable by other containers on that network, and discoverable by its service name. This network uses the bridge driver. To attach services to a different Compose network or an external one, see Specify custom networks. To change how a service uses the host network stack (networkmode: host), see Change the network mode. For most development setups, the default network is sufficient. When you run docker compose up, Compose creates a network named default and attaches all services to it. Each service registers its name with an internal DNS server, so containers can reach each other using the service name directly. No IP addresses or manual configuration is needed. For example, suppose y",
+      "summary": "By default, Compose sets up a single network for your app. Each container for a service joins the default network and is both reachable by other containers on that network, and discoverable by its service name. This netw",
+      "source_path": "content/manuals/compose/how-tos/networking.md",
+      "source_blob_sha": "c025a080350fa308d827e02da3124b356e4589f3"
+    },
+    {
+      "title": "Updating containers on the network",
+      "source": "Docker",
+      "url": "https://docs.docker.com/compose/how-tos/networking/",
+      "section": "Updating containers on the network",
+      "text": "If you make a configuration change to a service and run docker compose up to update it, the old container is removed and the new one joins the network under a different IP address but the same name. Running containers can look up that name and connect to the new address, but the old address stops working. If any containers have connections open to the old container, they are closed. It is each container's responsibility to detect this condition, look up the name again, and reconnect.",
+      "summary": "If you make a configuration change to a service and run docker compose up to update it, the old container is removed and the new one joins the network under a different IP address but the same name. Running containers ca",
+      "source_path": "content/manuals/compose/how-tos/networking.md",
+      "source_blob_sha": "c025a080350fa308d827e02da3124b356e4589f3"
+    },
+    {
+      "title": "Change the network mode",
+      "source": "Docker",
+      "url": "https://docs.docker.com/compose/how-tos/networking/",
+      "section": "Change the network mode",
+      "text": "By default, each service joins the project's bridge network. It is the most secure networking mode. If you don't specify networkmode, this is the type of network you are creating. You can override the networking mode on a per-service basis. The networkmode option accepts the following values: - host: The container shares the host's network stack. No port mapping is needed or supported, and service name DNS resolution does not work. Use for system-level tools like network monitors that require direct access to host interfaces. A container using networkmode: host can access all host ports and observe all network traffic on the host. Use it only when genuinely required. - none: Turns off all container networking. - service:{name}: Gives the container access to the specified container by referring to its service ",
+      "summary": "By default, each service joins the project's bridge network. It is the most secure networking mode. If you don't specify networkmode, this is the type of network you are creating. You can override the networking mode on ",
+      "source_path": "content/manuals/compose/how-tos/networking.md",
+      "source_blob_sha": "c025a080350fa308d827e02da3124b356e4589f3"
+    },
+    {
+      "title": "Specify custom networks",
+      "source": "Docker",
+      "url": "https://docs.docker.com/compose/how-tos/networking/",
+      "section": "Specify custom networks",
+      "text": "Instead of just using the default app network, you can specify your own networks with the top-level networks key. This lets you create more complex topologies and specify custom network drivers and options. You can also use it to connect services to externally-created networks which aren't managed by Compose. Each service can specify what networks to connect to with the service-level networks key, which is a list of names referencing entries under the top-level networks key. The following example shows a Compose file which defines two custom networks. The proxy service is isolated from the db service, because they do not share a network in common. Only app can talk to both. Networks can be configured with static IP addresses by setting the ipv4address and/or ipv6address for each attached network. Networks can",
+      "summary": "Instead of just using the default app network, you can specify your own networks with the top-level networks key. This lets you create more complex topologies and specify custom network drivers and options. You can also ",
+      "source_path": "content/manuals/compose/how-tos/networking.md",
+      "source_blob_sha": "c025a080350fa308d827e02da3124b356e4589f3"
+    },
+    {
+      "title": "Internal networks",
+      "source": "Docker",
+      "url": "https://docs.docker.com/compose/how-tos/networking/",
+      "section": "Internal networks",
+      "text": "Setting internal: true on a network creates it without a connection to the host's network interfaces. It has no default gateway for external connectivity. This is useful for services like databases that should be completely unreachable from outside the container network: Note that a service connected to both an internal and a non-internal network (like worker above) can still reach the internet via the non-internal network public.",
+      "summary": "Setting internal: true on a network creates it without a connection to the host's network interfaces. It has no default gateway for external connectivity. This is useful for services like databases that should be complet",
+      "source_path": "content/manuals/compose/how-tos/networking.md",
+      "source_blob_sha": "c025a080350fa308d827e02da3124b356e4589f3"
+    },
+    {
+      "title": "Configure the default network",
+      "source": "Docker",
+      "url": "https://docs.docker.com/compose/how-tos/networking/",
+      "section": "Configure the default network",
+      "text": "Instead of, or as well as, specifying your own networks, you can also change the settings of the app-wide default network by defining an entry under networks named default:",
+      "summary": "Instead of, or as well as, specifying your own networks, you can also change the settings of the app-wide default network by defining an entry under networks named default:",
+      "source_path": "content/manuals/compose/how-tos/networking.md",
+      "source_blob_sha": "c025a080350fa308d827e02da3124b356e4589f3"
+    },
+    {
+      "title": "Use an existing external network",
+      "source": "Docker",
+      "url": "https://docs.docker.com/compose/how-tos/networking/",
+      "section": "Use an existing external network",
+      "text": "If you've manually created a bridge network using docker network create, you can connect your Compose services to it by marking the network as external: Instead of creating default, Compose looks for a network called my-pre-existing-network and connects your containers to it.",
+      "summary": "If you've manually created a bridge network using docker network create, you can connect your Compose services to it by marking the network as external: Instead of creating default, Compose looks for a network called my-",
+      "source_path": "content/manuals/compose/how-tos/networking.md",
+      "source_blob_sha": "c025a080350fa308d827e02da3124b356e4589f3"
+    },
+    {
+      "title": "Connecting multiple Compose projects",
+      "source": "Docker",
+      "url": "https://docs.docker.com/compose/how-tos/networking/",
+      "section": "Connecting multiple Compose projects",
+      "text": "External networks are particularly useful when services in separate Compose projects need to communicate. Create a shared network once, then reference it as external in each project: backend-compose.yaml: frontend-compose.yaml: Services on the same external network can reach each other by service name, just like services within a single project. > [!IMPORTANT] > > The external network must exist before you run docker compose up. If it doesn't, Compose fails with a Network not found error. Always create it first with docker network create.",
+      "summary": "External networks are particularly useful when services in separate Compose projects need to communicate. Create a shared network once, then reference it as external in each project: backend-compose.yaml: frontend-compos",
+      "source_path": "content/manuals/compose/how-tos/networking.md",
+      "source_blob_sha": "c025a080350fa308d827e02da3124b356e4589f3"
+    },
+    {
+      "title": "Hybrid networking",
+      "source": "Docker",
+      "url": "https://docs.docker.com/compose/how-tos/networking/",
+      "section": "Hybrid networking",
+      "text": "A service can belong to both an external shared network and its own project-internal network. This lets you expose only the services that need to be reachable from other projects, while keeping everything else, such as databases, fully isolated:",
+      "summary": "A service can belong to both an external shared network and its own project-internal network. This lets you expose only the services that need to be reachable from other projects, while keeping everything else, such as d",
+      "source_path": "content/manuals/compose/how-tos/networking.md",
+      "source_blob_sha": "c025a080350fa308d827e02da3124b356e4589f3"
+    },
+    {
+      "title": "Custom DNS with extrahosts",
+      "source": "Docker",
+      "url": "https://docs.docker.com/compose/how-tos/networking/",
+      "section": "Custom DNS with extrahosts",
+      "text": "You can add custom hostname-to-IP mappings to a container's /etc/hosts file using extrahosts. This is useful when a service needs to resolve a hostname that isn't registered in Docker's internal DNS. For example, a fixed-IP dependency or a staging endpoint: To map a hostname dynamically to the host machine's IP, use the special host-gateway value: On Linux, host-gateway resolves to the host's IP on the default bridge network. On Mac and Windows, Docker automatically provides this, host-gateway resolves to the same internal IP address as host.docker.internal. You can also drive extrahosts from environment variables, which makes it easy to point services at different targets per environment: Where .env.development might set APIHOST=localhost and a production env file might set APIHOST=10.0.1.50. To verify what ",
+      "summary": "You can add custom hostname-to-IP mappings to a container's /etc/hosts file using extrahosts. This is useful when a service needs to resolve a hostname that isn't registered in Docker's internal DNS. For example, a fixed",
+      "source_path": "content/manuals/compose/how-tos/networking.md",
+      "source_blob_sha": "c025a080350fa308d827e02da3124b356e4589f3"
+    },
+    {
+      "title": "Multi-host networking",
+      "source": "Docker",
+      "url": "https://docs.docker.com/compose/how-tos/networking/",
+      "section": "Multi-host networking",
+      "text": "When deploying a Compose application on a Docker Engine with Swarm mode enabled, you can use the built-in overlay driver to enable multi-host communication. Overlay networks are always created as attachable. You can optionally set the attachable property to false. To learn more, see the overlay network driver documentation.",
+      "summary": "When deploying a Compose application on a Docker Engine with Swarm mode enabled, you can use the built-in overlay driver to enable multi-host communication. Overlay networks are always created as attachable. You can opti",
+      "source_path": "content/manuals/compose/how-tos/networking.md",
+      "source_blob_sha": "c025a080350fa308d827e02da3124b356e4589f3"
+    },
+    {
+      "title": "volumes",
+      "source": "Docker",
+      "url": "https://docs.docker.com/engine/storage/volumes/",
+      "section": "Overview",
+      "text": "Volumes are persistent data stores for containers, created and managed by Docker. You can create a volume explicitly using the docker volume create command, or Docker can create a volume during container or service creation. When you create a volume, it's stored within a directory on the Docker host. When you mount the volume into a container, this directory is what's mounted into the container. This is similar to the way that bind mounts work, except that volumes are managed by Docker and are isolated from the core functionality of the host machine.",
+      "summary": "Volumes are persistent data stores for containers, created and managed by Docker. You can create a volume explicitly using the docker volume create command, or Docker can create a volume during container or service creat",
+      "source_path": "content/manuals/engine/storage/volumes.md",
+      "source_blob_sha": "6d492edf3572c4af93d8a7558056f0fec367e613"
+    },
+    {
+      "title": "When to use volumes",
+      "source": "Docker",
+      "url": "https://docs.docker.com/engine/storage/volumes/",
+      "section": "When to use volumes",
+      "text": "Volumes are the preferred mechanism for persisting data generated by and used by Docker containers. While bind mounts are dependent on the directory structure and OS of the host machine, volumes are completely managed by Docker. Volumes are a good choice for the following use cases: - Volumes are easier to back up or migrate than bind mounts. - You can manage volumes using Docker CLI commands or the Docker API. - Volumes work on both Linux and Windows containers. - Volumes can be more safely shared among multiple containers. - New volumes can have their content pre-populated by a container or build. - When your application requires high-performance I/O. Volumes are not a good choice if you need to access the files from the host, as the volume is completely managed by Docker. Use bind mounts if you need to acc",
+      "summary": "Volumes are the preferred mechanism for persisting data generated by and used by Docker containers. While bind mounts are dependent on the directory structure and OS of the host machine, volumes are completely managed by",
+      "source_path": "content/manuals/engine/storage/volumes.md",
+      "source_blob_sha": "6d492edf3572c4af93d8a7558056f0fec367e613"
+    },
+    {
+      "title": "A volume's lifecycle",
+      "source": "Docker",
+      "url": "https://docs.docker.com/engine/storage/volumes/",
+      "section": "A volume's lifecycle",
+      "text": "A volume's contents exist outside the lifecycle of a given container. When a container is destroyed, the writable layer is destroyed with it. Using a volume ensures that the data is persisted even if the container using it is removed. A given volume can be mounted into multiple containers simultaneously. When no running container is using a volume, the volume is still available to Docker and isn't removed automatically. You can remove unused volumes using docker volume prune.",
+      "summary": "A volume's contents exist outside the lifecycle of a given container. When a container is destroyed, the writable layer is destroyed with it. Using a volume ensures that the data is persisted even if the container using ",
+      "source_path": "content/manuals/engine/storage/volumes.md",
+      "source_blob_sha": "6d492edf3572c4af93d8a7558056f0fec367e613"
+    },
+    {
+      "title": "Mounting a volume over existing data",
+      "source": "Docker",
+      "url": "https://docs.docker.com/engine/storage/volumes/",
+      "section": "Mounting a volume over existing data",
+      "text": "If you mount a non-empty volume into a directory in the container in which files or directories exist, the pre-existing files are obscured by the mount. This is similar to if you were to save files into /mnt on a Linux host, and then mounted a USB drive into /mnt. The contents of /mnt would be obscured by the contents of the USB drive until the USB drive was unmounted. With containers, there's no straightforward way of removing a mount to reveal the obscured files again. Your best option is to recreate the container without the mount. If you mount an empty volume into a directory in the container in which files or directories exist, these files or directories are propagated (copied) into the volume by default. Similarly, if you start a container and specify a volume which does not already exist, an empty volu",
+      "summary": "If you mount a non-empty volume into a directory in the container in which files or directories exist, the pre-existing files are obscured by the mount. This is similar to if you were to save files into /mnt on a Linux h",
+      "source_path": "content/manuals/engine/storage/volumes.md",
+      "source_blob_sha": "6d492edf3572c4af93d8a7558056f0fec367e613"
+    },
+    {
+      "title": "Named and anonymous volumes",
+      "source": "Docker",
+      "url": "https://docs.docker.com/engine/storage/volumes/",
+      "section": "Named and anonymous volumes",
+      "text": "A volume may be named or anonymous. Anonymous volumes are given a random name that's guaranteed to be unique within a given Docker host. Just like named volumes, anonymous volumes persist even if you remove the container that uses them, except if you use the --rm flag when creating the container, in which case the anonymous volume associated with the container is destroyed. See Remove anonymous volumes. If you create multiple containers consecutively that each use anonymous volumes, each container creates its own volume. Anonymous volumes aren't reused or shared between containers automatically. To share an anonymous volume between two or more containers, you must mount the anonymous volume using the random volume ID.",
+      "summary": "A volume may be named or anonymous. Anonymous volumes are given a random name that's guaranteed to be unique within a given Docker host. Just like named volumes, anonymous volumes persist even if you remove the container",
+      "source_path": "content/manuals/engine/storage/volumes.md",
+      "source_blob_sha": "6d492edf3572c4af93d8a7558056f0fec367e613"
+    },
+    {
+      "title": "Syntax",
+      "source": "Docker",
+      "url": "https://docs.docker.com/engine/storage/volumes/",
+      "section": "Syntax",
+      "text": "To mount a volume with the docker run command, you can use either the --mount or --volume flag. In general, --mount is preferred. The main difference is that the --mount flag is more explicit and supports all the available options. You must use --mount if you want to: - Specify volume driver options - Mount a volume subdirectory - Mount a volume into a Swarm service",
+      "summary": "To mount a volume with the docker run command, you can use either the --mount or --volume flag. In general, --mount is preferred. The main difference is that the --mount flag is more explicit and supports all the availab",
+      "source_path": "content/manuals/engine/storage/volumes.md",
+      "source_blob_sha": "6d492edf3572c4af93d8a7558056f0fec367e613"
+    },
+    {
+      "title": "Options for --mount",
+      "source": "Docker",
+      "url": "https://docs.docker.com/engine/storage/volumes/",
+      "section": "Options for --mount",
+      "text": "The --mount flag consists of multiple key-value pairs, separated by commas and each consisting of a = tuple. The order of the keys isn't significant. Valid options for --mount type=volume include: | Option | Description | | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | | source, src | The source of the mount. For named volumes, this is the name of the volume. For anonymous volumes, this field is omitted. | | destination, dst, target | The path where the file or directory is mounted in the container. | | volume-subpath | A path to a subdirectory within the volume to mount into the container. The subdi",
+      "summary": "The --mount flag consists of multiple key-value pairs, separated by commas and each consisting of a = tuple. The order of the keys isn't significant. Valid options for --mount type=volume include: | Option | Description ",
+      "source_path": "content/manuals/engine/storage/volumes.md",
+      "source_blob_sha": "6d492edf3572c4af93d8a7558056f0fec367e613"
+    },
+    {
+      "title": "Options for --volume",
+      "source": "Docker",
+      "url": "https://docs.docker.com/engine/storage/volumes/",
+      "section": "Options for --volume",
+      "text": "The --volume or -v flag consists of three fields, separated by colon characters (:). The fields must be in the correct order. In the case of named volumes, the first field is the name of the volume, and is unique on a given host machine. For anonymous volumes, the first field is omitted. The second field is the path where the file or directory is mounted in the container. The third field is optional, and is a comma-separated list of options. Valid options for --volume with a data volume include: | Option | Description | | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | | readonly, ro | If present, causes the volume to be mounted into the container as read-only",
+      "summary": "The --volume or -v flag consists of three fields, separated by colon characters (:). The fields must be in the correct order. In the case of named volumes, the first field is the name of the volume, and is unique on a gi",
+      "source_path": "content/manuals/engine/storage/volumes.md",
+      "source_blob_sha": "6d492edf3572c4af93d8a7558056f0fec367e613"
+    },
+    {
+      "title": "Create and manage volumes",
+      "source": "Docker",
+      "url": "https://docs.docker.com/engine/storage/volumes/",
+      "section": "Create and manage volumes",
+      "text": "Unlike a bind mount, you can create and manage volumes outside the scope of any container. Create a volume: List volumes: Inspect a volume: Remove a volume:",
+      "summary": "Unlike a bind mount, you can create and manage volumes outside the scope of any container. Create a volume: List volumes: Inspect a volume: Remove a volume:",
+      "source_path": "content/manuals/engine/storage/volumes.md",
+      "source_blob_sha": "6d492edf3572c4af93d8a7558056f0fec367e613"
+    },
+    {
+      "title": "Start a container with a volume",
+      "source": "Docker",
+      "url": "https://docs.docker.com/engine/storage/volumes/",
+      "section": "Start a container with a volume",
+      "text": "If you start a container with a volume that doesn't yet exist, Docker creates the volume for you. The following example mounts the volume myvol2 into /app/ in the container. The following -v and --mount examples produce the same result. You can't run them both unless you remove the devtest container and the myvol2 volume after running the first one. Use docker inspect devtest to verify that Docker created the volume and it mounted correctly. Look for the Mounts section: This shows that the mount is a volume, it shows the correct source and destination, and that the mount is read-write. Stop the container and remove the volume. Note volume removal is a separate step.",
+      "summary": "If you start a container with a volume that doesn't yet exist, Docker creates the volume for you. The following example mounts the volume myvol2 into /app/ in the container. The following -v and --mount examples produce ",
+      "source_path": "content/manuals/engine/storage/volumes.md",
+      "source_blob_sha": "6d492edf3572c4af93d8a7558056f0fec367e613"
+    },
+    {
+      "title": "Use a volume with Docker Compose",
+      "source": "Docker",
+      "url": "https://docs.docker.com/engine/storage/volumes/",
+      "section": "Use a volume with Docker Compose",
+      "text": "The following example shows a single Docker Compose service with a volume: Running docker compose up for the first time creates a volume. Docker reuses the same volume when you run the command subsequently. You can create a volume directly outside of Compose using docker volume create and then reference it inside compose.yaml as follows: For more information about using volumes with Compose, refer to the Volumes section in the Compose specification.",
+      "summary": "The following example shows a single Docker Compose service with a volume: Running docker compose up for the first time creates a volume. Docker reuses the same volume when you run the command subsequently. You can creat",
+      "source_path": "content/manuals/engine/storage/volumes.md",
+      "source_blob_sha": "6d492edf3572c4af93d8a7558056f0fec367e613"
+    },
+    {
+      "title": "Start a service with volumes",
+      "source": "Docker",
+      "url": "https://docs.docker.com/engine/storage/volumes/",
+      "section": "Start a service with volumes",
+      "text": "When you start a service and define a volume, each service container uses its own local volume. None of the containers can share this data if you use the local volume driver. However, some volume drivers do support shared storage. The following example starts an nginx service with four replicas, each of which uses a local volume called myvol2. Use docker service ps devtest-service to verify that the service is running: You can remove the service to stop the running tasks: Removing the service doesn't remove any volumes created by the service. Volume removal is a separate step.",
+      "summary": "When you start a service and define a volume, each service container uses its own local volume. None of the containers can share this data if you use the local volume driver. However, some volume drivers do support share",
+      "source_path": "content/manuals/engine/storage/volumes.md",
+      "source_blob_sha": "6d492edf3572c4af93d8a7558056f0fec367e613"
+    }
+  ],
+  "sources": [
+    {
+      "path": "content/manuals/build/concepts/dockerfile.md",
+      "url": "https://docs.docker.com/build/concepts/dockerfile/",
+      "blob_sha": "1d0893c531e908bd10ee8007064c6f4f73a09712",
+      "sections": 12
+    },
+    {
+      "path": "content/manuals/build/concepts/context.md",
+      "url": "https://docs.docker.com/build/concepts/context/",
+      "blob_sha": "88a6da1e5c423a598aa19d6d599f5d05f0df4554",
+      "sections": 12
+    },
+    {
+      "path": "content/manuals/compose/how-tos/networking.md",
+      "url": "https://docs.docker.com/compose/how-tos/networking/",
+      "blob_sha": "c025a080350fa308d827e02da3124b356e4589f3",
+      "sections": 12
+    },
+    {
+      "path": "content/manuals/engine/storage/volumes.md",
+      "url": "https://docs.docker.com/engine/storage/volumes/",
+      "blob_sha": "6d492edf3572c4af93d8a7558056f0fec367e613",
+      "sections": 12
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+# Optional separate Render blueprint. Do not deploy unless you want a second service.
+# The original distributed-search-portfolio-demo remains on deployment-demo.
+services:
+  - type: web
+    name: developer-docs-search-demo
+    runtime: docker
+    plan: free
+    branch: developer-docs-search
+    dockerfilePath: ./Dockerfile.docs
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass

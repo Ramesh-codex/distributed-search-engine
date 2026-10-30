@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Search official FastAPI, HTTPX and Docker documentation using a custom BM25 distributed search engine.">
+<title>DevDocs Search · Distributed Search Lab</title>
+<style>
+:root{color-scheme:dark;--bg:#08111f;--panel:#122035;--line:#2c405a;--text:#eaf3ff;--sub:#a9bdd4;--muted:#8fa5be;--mint:#96edd4;--blue:#9fbffb;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}body{margin:0;color:var(--text);background:radial-gradient(ellipse 700px 440px at 90% 0,#15385877,transparent 80%),var(--bg);line-height:1.6}
+a{color:inherit}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--mint);outline-offset:3px}
+.shell{max-width:1150px;margin:auto;padding:0 26px}header{border-bottom:1px solid #263951}
+nav{min-height:78px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{text-decoration:none;display:flex;align-items:center;gap:12px;font-weight:800}.logo{background:linear-gradient(140deg,#a1f5d8,#97baff);color:#0b2035;padding:9px;border-radius:12px;font-weight:900;font-size:19px}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.13em;text-transform:uppercase}
+.nav-links{display:flex;gap:23px}.nav-links a{font-size:13px;text-decoration:none;color:var(--sub)}
+.hero{padding:66px 0 40px;display:grid;grid-template-columns:1fr 280px;gap:40px;align-items:center}.eyebrow{color:var(--mint);letter-spacing:.16em;text-transform:uppercase;font-weight:800;font-size:11px}h1{font-size:clamp(38px,5vw,60px);line-height:1.08;letter-spacing:-.055em;margin:17px 0}h1 em{font-style:normal;color:var(--mint)}.intro{color:var(--sub);font-size:16px;max-width:640px}
+.kpis{border:1px solid #39516d;background:var(--panel);padding:24px;border-radius:18px}.kpis strong{font-size:43px;letter-spacing:-.06em;line-height:1.1;display:block}.kpis small{color:var(--sub)}.kpis hr{border:0;border-top:1px solid var(--line);margin:17px 0}.kpis p{display:flex;justify-content:space-between;color:var(--sub);margin:5px 0;font-size:12px}.kpis b{color:var(--mint)}
+.searchpanel{border:1px solid #395573;background:var(--panel);padding:18px;border-radius:18px}form{display:flex;gap:10px}#q{width:100%;flex:1;min-width:0;background:#09182a;border:1px solid #405f7f;border-radius:11px;color:var(--text);font-size:16px;padding:0 17px;height:57px}#q::placeholder{color:#9aaec5}.submit{border:0;border-radius:11px;background:linear-gradient(120deg,#9cf1d9,#99cbfa);color:#061627;padding:0 27px;font-weight:800}.submit:disabled{opacity:.65;cursor:wait}
+.examples{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px}.examples span{color:var(--muted);font-size:12px;margin-right:4px}.chip{background:#1b334a;color:#d1e5fb;border:1px solid #3d5770;border-radius:99px;padding:7px 12px;font-size:12px}.chip:hover{border-color:var(--mint);color:var(--mint)}
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:22px;margin:24px 0 70px;align-items:start}.sidebar,.resultspanel{background:var(--panel);border:1px solid var(--line);border-radius:16px}.sidebar{padding:21px}.sidebar h2{font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.12em;margin:0 0 15px}
+.filters{display:grid;gap:7px}.filter{display:flex;align-items:center;justify-content:space-between;width:100%;border:1px solid #344e68;border-radius:9px;background:#1a2e43;color:var(--sub);padding:9px 12px;text-align:left;font-size:12px}.filter.active{border-color:var(--mint);color:var(--mint);background:#173842}.count{font-variant-numeric:tabular-nums}.sep{height:1px;background:var(--line);margin:20px 0}.status{display:flex;align-items:center;gap:9px;color:var(--sub);font-size:12px}.dot{background:#6b859d;width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}.dot.good{background:var(--mint)}.sidebar p{font-size:12px;color:var(--muted);margin:11px 0 0}
+.resultshead{padding:20px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid var(--line)}h2{margin:0;font-size:16px}.resultshead span{color:var(--muted);font-size:12px;text-align:right}
+.notice{display:none;padding:12px 24px;background:#513d2033;color:#ffd38c;border-bottom:1px solid #715332;font-size:12px}.notice.visible{display:block}.notice.error{color:#ffadb6;border-color:#7c3d4d;background:#4d182d22}
+#results{list-style:none;margin:0;padding:0;min-height:300px}.result{padding:21px 24px;border-bottom:1px solid #253d59}.result:last-child{border-bottom:0}.result:hover{background:#243b503d}.resulttop{display:flex;justify-content:space-between;gap:14px}.rank{color:var(--mint);font-size:12px;margin-right:11px}.resulttitle{font-size:16px;font-weight:750;text-decoration:none;overflow-wrap:anywhere}.resulttitle:hover{color:var(--mint)}.score{border:1px solid #3b546d;color:var(--sub);font-size:11px;border-radius:7px;padding:3px 8px;white-space:nowrap;align-self:flex-start}.tags{display:flex;gap:8px;margin:10px 0 0 27px;flex-wrap:wrap}.tag{font-size:11px;border-radius:6px;color:#b9e9dd;background:#1a3c49;padding:2px 8px}.tag.secondary{color:#bed1e3;background:#25374b}.snippet{font-size:13px;color:var(--sub);margin:10px 0 0 27px}.source-link{color:#9dc9fa;display:inline-block;font-size:12px;margin:9px 0 0 27px;text-decoration:none}.source-link:hover{text-decoration:underline}
+.empty{padding:60px 28px;text-align:center;min-height:300px;display:grid;place-content:center}.emptyicon{width:56px;height:56px;border:1px solid #416079;border-radius:14px;background:#20374d;color:var(--mint);display:grid;place-items:center;margin:0 auto 14px;font-size:28px}.empty strong{display:block;font-size:17px}.empty p{color:var(--muted);font-size:13px;margin:8px auto;max-width:400px}
+footer{border-top:1px solid #263b55;padding:23px 0 36px;display:flex;justify-content:space-between;gap:18px;font-size:12px;color:var(--muted)}footer a{color:var(--sub);text-decoration:none}
+@media(max-width:820px){.hero{grid-template-columns:1fr;gap:22px;padding-top:42px}.kpis{max-width:420px}.layout{grid-template-columns:1fr}}
+@media(max-width:550px){.shell{padding:0 15px}.hero{padding-top:35px}form{flex-direction:column}.submit{min-height:49px}.nav-links{gap:11px}.nav-links a{font-size:12px}.resultshead{align-items:flex-start;flex-direction:column;gap:5px}.resultshead span{text-align:left}.result{padding:18px}.tags,.snippet,.source-link{margin-left:0}footer{flex-direction:column}}
+</style>
+</head>
+<body>
+<header><nav class="shell"><a class="brand" href="/"><span class="logo">D/</span><span>DevDocs Search<small>Distributed Search Lab</small></span></a><div class="nav-links"><a href="https://github.com/Ramesh-codex/distributed-search-engine/tree/developer-docs-search" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="/docs" target="_blank" rel="noopener noreferrer">API docs ↗</a></div></nav></header>
+<main class="shell">
+<section class="hero"><div><div class="eyebrow">Real documentation · Distributed retrieval</div><h1>Developer answers.<br><em>Searchable at scale.</em></h1><p class="intro">Search official FastAPI, HTTPX and Docker documentation with a custom inverted index and BM25 relevance ranking, distributed across three HTTP shard processes.</p></div><aside class="kpis" aria-label="Corpus details"><strong id="corpus-count">—</strong><small>indexed documentation sections</small><hr><p><span>Search shards</span><b>3</b></p><p><span>Official source pages</span><b id="page-count">—</b></p><p><span>Snapshot</span><b id="snapshot-date">—</b></p></aside></section>
+<section class="searchpanel" aria-label="Documentation search"><form id="search-form" role="search"><input id="q" name="q" type="search" required maxlength="160" autocomplete="off" placeholder="Search dependency injection, request timeouts, Dockerfiles…" aria-label="Search developer documentation"><button id="search-button" class="submit" type="submit">Search docs →</button></form><div class="examples"><span>Try an example:</span><button class="chip" type="button" data-query="dependency injection">Dependency injection</button><button class="chip" type="button" data-query="request timeout">Request timeout</button><button class="chip" type="button" data-query="dockerfile build">Dockerfile build</button><button class="chip" type="button" data-query="async client">Async client</button></div></section>
+<div class="layout">
+<aside class="sidebar"><h2>Documentation sources</h2><div id="filters" class="filters"><button class="filter active" type="button" data-source="all" aria-pressed="true"><span>All sources</span><span class="count" id="count-all">—</span></button><button class="filter" type="button" data-source="FastAPI" aria-pressed="false"><span>FastAPI</span><span class="count" id="count-fastapi">—</span></button><button class="filter" type="button" data-source="HTTPX" aria-pressed="false"><span>HTTPX</span><span class="count" id="count-httpx">—</span></button><button class="filter" type="button" data-source="Docker" aria-pressed="false"><span>Docker</span><span class="count" id="count-docker">—</span></button></div><div class="sep"></div><h2>Cluster telemetry</h2><div class="status" role="status"><span id="cluster-dot" class="dot"></span><span id="cluster-state">Checking shard circuits…</span></div><p id="health-note">Closed circuits allow requests; a real search confirms shard responses.</p><div class="sep"></div><h2>About this index</h2><p>Attributed excerpts from official open-source documentation pages. This is a fixed snapshot, not a current or complete mirror.</p><p>Three independent HTTP shard processes share one container to minimize hosting cost.</p></aside>
+<section class="resultspanel" aria-labelledby="results-heading"><div class="resultshead"><h2 id="results-heading">Ranked results</h2><span id="meta" role="status" aria-live="polite">Search to begin</span></div><div id="notice" class="notice" role="alert"></div><ol id="results"><li class="empty"><div><div class="emptyicon" aria-hidden="true">⌕</div><strong>Explore developer documentation</strong><p>Run a query to view ranked documentation excerpts, original source links, BM25 scores and shards.</p></div></li></ol></section>
+</div></main>
+<footer class="shell"><span>Powered by custom BM25, inverted indexes and distributed HTTP search</span><span><a target="_blank" rel="noopener noreferrer" href="https://github.com/Ramesh-codex/distributed-search-engine/blob/developer-docs-search/docs_app/README.md">Implementation details ↗</a></span></footer>
+<script>
+"use strict";
+const form=document.getElementById("search-form");
+const input=document.getElementById("q");
+const submit=document.getElementById("search-button");
+const results=document.getElementById("results");
+const meta=document.getElementById("meta");
+const notice=document.getElementById("notice");
+const dot=document.getElementById("cluster-dot");
+const cluster=document.getElementById("cluster-state");
+const healthNote=document.getElementById("health-note");
+let activeSource="all",shardUrls=[],inFlight=null;
+function create(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;}
+function empty(title,detail){const li=create("li","empty");const box=create("div");box.append(create("div","emptyicon","⌕"),create("strong","",title),create("p","",detail));li.append(box);results.replaceChildren(li);}
+function showNotice(message,error){notice.textContent=message;notice.className="notice"+(message?" visible":"")+(error?" error":"");}
+function labelShard(url){const i=shardUrls.indexOf(url);return i<0?"Search shard":"Shard "+String(i+1).padStart(2,"0");}
+function linkSafe(url){try{const u=new URL(url);return u.protocol==="https:"&&["fastapi.tiangolo.com","www.python-httpx.org","docs.docker.com"].includes(u.hostname)?u.href:null;}catch(_){return null;}}
+async function loadStats(){
+ try{
+  const r=await fetch("/stats",{cache:"no-store"});if(!r.ok)throw Error("stats unavailable");
+  const s=await r.json();shardUrls=s.shard_urls;
+  document.getElementById("corpus-count").textContent=s.document_count;
+  document.getElementById("count-all").textContent=s.document_count;
+  document.getElementById("page-count").textContent=s.source_pages;
+  document.getElementById("snapshot-date").textContent=s.snapshot_date;
+  for(const name of ["FastAPI","HTTPX","Docker"])document.getElementById("count-"+name.toLowerCase()).textContent=s.source_counts[name]||0;
+  const good=s.shard_urls.length===3&&s.shard_urls.every(url=>s.breakers[url]&&s.breakers[url].state==="closed");
+  dot.className="dot"+(good?" good":"");cluster.textContent=good?"3 shards configured":"Shard circuit needs attention";
+ }catch(_){dot.className="dot";cluster.textContent="Telemetry unavailable";}
+}
+function render(data){
+ meta.textContent=data.results.length+" results · "+data.shards_queried+"/3 shards answered · "+Number(data.elapsed_ms).toFixed(1)+" ms server";
+ dot.className="dot"+(data.shards_queried===3&&!data.degraded?" good":"");
+ cluster.textContent=data.shards_queried+"/3 shards answered";
+ healthNote.textContent=data.degraded?"Search returned partial results from available shards.":"Latest search confirmed these shard responses.";
+ showNotice(data.degraded?"Degraded search: some shards did not respond; results may be incomplete.":"",false);
+ if(!data.results.length){empty("No matching sections","Try a broader query or select another documentation source.");return;}
+ const list=data.results.map((r,i)=>{
+  const li=create("li","result"),top=create("div","resulttop"),title=create("div"),a=create("a","resulttitle",r.title||"Untitled");
+  const safe=linkSafe(r.url);
+  if(safe){a.href=safe;a.target="_blank";a.rel="noopener noreferrer";}else{a.removeAttribute("href");}
+  title.append(create("span","rank",String(i+1).padStart(2,"0")),a);
+  const score=Number(r.score);top.append(title,create("span","score","BM25 "+(Number.isFinite(score)?score.toFixed(3):"—")));
+  const tags=create("div","tags");tags.append(create("span","tag",r.source),create("span","tag secondary",labelShard(r.shard)));
+  const snippet=create("p","snippet",r.snippet||"No snippet available.");
+  li.append(top,tags,snippet);
+  if(safe){const official=create("a","source-link","Read original documentation ↗");official.href=safe;official.target="_blank";official.rel="noopener noreferrer";li.append(official);}
+  return li;
+ });results.replaceChildren(...list);
+}
+async function search(){
+ const query=input.value.trim();if(!query)return;
+ if(inFlight)inFlight.abort();
+ const controller=new AbortController();inFlight=controller;
+ submit.disabled=true;submit.textContent="Searching…";meta.textContent="Querying three shards…";showNotice("",false);empty("Searching the documentation","Scattering your query, merging ranked results.");
+ try{
+  const p=new URLSearchParams({q:query,k:"10",source:activeSource});
+  const res=await fetch("/search?"+p,{signal:controller.signal});
+  if(!res.ok)throw Error("HTTP "+res.status);
+  const body=await res.json();if(!Array.isArray(body.results))throw Error("Invalid search response");
+  if(inFlight===controller){render(body);loadStats();}
+ }catch(e){if(e.name!=="AbortError"&&inFlight===controller){meta.textContent="Search unavailable";showNotice("Search failed. Please retry. "+e.message,true);empty("Couldn't finish this request","The service may be waking or temporarily unavailable.");}}
+ finally{if(inFlight===controller){inFlight=null;submit.disabled=false;submit.textContent="Search docs →";}}
+}
+form.addEventListener("submit",e=>{e.preventDefault();search();});
+document.querySelectorAll("[data-query]").forEach(b=>b.addEventListener("click",()=>{input.value=b.dataset.query;search();}));
+document.querySelectorAll("[data-source]").forEach(b=>b.addEventListener("click",()=>{
+ activeSource=b.dataset.source;
+ document.querySelectorAll("[data-source]").forEach(x=>{const selected=x===b;x.classList.toggle("active",selected);x.setAttribute("aria-pressed",String(selected));});
+ if(input.value.trim())search();
+}));
+loadStats();
+</script>
+</body>
+</html>

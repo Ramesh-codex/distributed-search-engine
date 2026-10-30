@@ -1,0 +1,29 @@
+name: Demo cluster smoke test
+
+on:
+  push:
+    branches: [deployment-demo]
+  pull_request:
+    branches: [deployment-demo]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  demo-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install demo runtime
+        run: python -m pip install -r requirements-demo.txt
+      - name: Check Python modules
+        run: python -m compileall -q src demo
+      - name: Build indexes and test real HTTP cluster
+        env:
+          PYTHONPATH: src
+        run: python demo/smoke_test.py

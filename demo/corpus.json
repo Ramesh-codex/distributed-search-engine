@@ -1,0 +1,194 @@
+[
+  {
+    "title": "Inverted Index",
+    "text": "Search engine storage maps each normalized term to sorted document identifiers and term frequencies. Postings lists avoid scanning every document when a user issues a keyword query."
+  },
+  {
+    "title": "BM25 Relevance Ranking",
+    "text": "BM25 combines inverse document frequency, term frequency saturation, and document length normalization. Rare useful words can carry more weight than common words across a collection."
+  },
+  {
+    "title": "Search Tokenization",
+    "text": "A tokenizer normalizes case, separates tokens, removes stop words, and applies light stemming. Indexing and querying must use the same analyzer to preserve retrieval correctness."
+  },
+  {
+    "title": "Variable Byte Postings Compression",
+    "text": "Variable byte encoding stores integer document gaps with a small number of bytes. Delta coded postings reduce storage and help search systems load index data efficiently."
+  },
+  {
+    "title": "Query Expansion",
+    "text": "Query expansion adds related terms to improve recall when searchers and documents use different vocabulary. Expansion can also decrease precision if unrelated concepts are introduced."
+  },
+  {
+    "title": "Document Frequency",
+    "text": "Document frequency counts how many documents contain a term. BM25 uses corpus-wide frequency to distinguish rare technical phrases from common words."
+  },
+  {
+    "title": "Top K Retrieval",
+    "text": "A top K query asks for only the highest scoring results. A heap can retain the strongest candidates without sorting all matched documents."
+  },
+  {
+    "title": "Memory Mapped Search Index",
+    "text": "Memory mapping lets a process read postings from a file as needed. Operating system paging can reduce startup time and avoid loading entire indexes into Python objects."
+  },
+  {
+    "title": "Web Crawling and Robots Rules",
+    "text": "A crawler discovers pages through links, respects robots instructions, and limits request rates. HTML extraction should discard navigation, scripts, and boilerplate before indexing content."
+  },
+  {
+    "title": "Index Freshness and Rebuilding",
+    "text": "A prebuilt read-only index offers predictable startup and query behavior. Periodic rebuilds trade immediate freshness for simpler storage and deployment."
+  },
+  {
+    "title": "Search Precision and Recall",
+    "text": "Precision describes the fraction of returned search results that are relevant. Recall describes the fraction of relevant documents retrieved. Ranking systems balance these measures."
+  },
+  {
+    "title": "Search Result Snippets",
+    "text": "A search interface can show titles, ranked scores, and short explanatory snippets. Clear metadata helps readers understand why a result matched a query."
+  },
+  {
+    "title": "Consistent Hashing",
+    "text": "A consistent hash ring assigns document keys to shard owners. Adding or removing a shard can move fewer keys than a modulo based partitioning scheme."
+  },
+  {
+    "title": "Scatter Gather Search",
+    "text": "A coordinator sends each search request to multiple shard services in parallel. It merges ranked local responses into one global top K result set."
+  },
+  {
+    "title": "Circuit Breaker Pattern",
+    "text": "A circuit breaker temporarily stops calls to an unhealthy downstream service after repeated failures. Its open, half-open, and closed states reduce repeated timeout costs."
+  },
+  {
+    "title": "Tail Latency in Distributed Systems",
+    "text": "Tail latency describes the slowest requests, not average responses. Parallel fanout can amplify delays because the coordinator may wait for the slowest shard."
+  },
+  {
+    "title": "Retry With Exponential Backoff",
+    "text": "Retries can recover from transient errors but may overload an already struggling dependency. Exponential backoff and jitter reduce synchronized retry storms."
+  },
+  {
+    "title": "Connect and Read Timeouts",
+    "text": "A connection timeout limits network establishment time while a read timeout limits waiting for a response. Separate budgets make slow and unreachable services easier to diagnose."
+  },
+  {
+    "title": "Replication and Availability",
+    "text": "Replica copies can serve requests when a node becomes unavailable. Replication adds consistency and synchronization tradeoffs that differ from partitioning documents across shards."
+  },
+  {
+    "title": "Leader Election",
+    "text": "Leader election selects one participant to coordinate an operation. Distributed databases use terms, leases, or consensus protocols to avoid competing writers."
+  },
+  {
+    "title": "Load Balancing",
+    "text": "A load balancer distributes requests among healthy server instances. Reverse proxies can forward traffic while adding request headers and managing connection limits."
+  },
+  {
+    "title": "Service Discovery",
+    "text": "Service discovery maps logical service names to current network endpoints. In a local Docker Compose environment, container DNS allows the coordinator to find shard services."
+  },
+  {
+    "title": "Graceful Degradation",
+    "text": "A distributed search service can return results from healthy shards when one shard fails. The response should explicitly mark partial coverage instead of presenting incomplete results as complete."
+  },
+  {
+    "title": "Network Partitions",
+    "text": "A network partition prevents some services from communicating. Systems must choose how to handle unavailable peers and communicate whether results are stale or partial."
+  },
+  {
+    "title": "FastAPI Backend",
+    "text": "FastAPI provides Python HTTP routes, request validation, and automatic OpenAPI documentation. Separate services can expose health, statistics, and search endpoints."
+  },
+  {
+    "title": "REST API Contract",
+    "text": "A predictable API uses documented query parameters, status codes, and JSON responses. Input validation rejects missing or invalid search parameters before executing the query."
+  },
+  {
+    "title": "Asyncio Concurrency",
+    "text": "Python asyncio runs nonblocking tasks on an event loop. It is useful for handling many slow network calls without allocating one operating system thread per request."
+  },
+  {
+    "title": "Service Metrics",
+    "text": "Metrics such as request latency, error counts, and cache hit rates help operators understand performance. Percentile latency and per-shard failures reveal problems hidden by averages."
+  },
+  {
+    "title": "Health Checks and Readiness",
+    "text": "A health endpoint lets hosting infrastructure identify a running process. Readiness also needs to consider dependencies before a multi-process service starts accepting traffic."
+  },
+  {
+    "title": "Docker Containers",
+    "text": "Docker images bundle application code and runtime dependencies into repeatable artifacts. Containers make environment assumptions explicit through files, ports, and commands."
+  },
+  {
+    "title": "Nginx Reverse Proxy",
+    "text": "Nginx can accept public HTTP traffic and forward requests to an internal coordinator. It supports proxy headers, upstream routing, and configurable connection limits."
+  },
+  {
+    "title": "Continuous Integration",
+    "text": "A CI pipeline runs tests for each code change and records pass or failure status. Smoke tests should exercise the real HTTP paths in addition to unit tests."
+  },
+  {
+    "title": "Immutable Deployment Artifacts",
+    "text": "An immutable container image can include a prebuilt index at build time. Restarting the container then restores the same read-only demo data without fetching a dataset."
+  },
+  {
+    "title": "Environment Variables",
+    "text": "Environment variables configure service ports, index paths, and shard URLs without hardcoding them into Python modules. Secrets must not be committed to public repositories."
+  },
+  {
+    "title": "API Rate Limiting",
+    "text": "Rate limiting controls how often clients can call an endpoint. It reduces resource exhaustion and abusive traffic, particularly on publicly accessible demo services."
+  },
+  {
+    "title": "Structured Application Logs",
+    "text": "Structured logs include timestamps, severity, service identity, and request context. Clear log fields make debugging across coordinator and shard processes easier."
+  },
+  {
+    "title": "AI Agent Orchestration",
+    "text": "An AI agent workflow coordinates language model decisions and external tools. Reliable orchestration needs explicit state, error handling, deadlines, and termination conditions."
+  },
+  {
+    "title": "Tool Calling and Validation",
+    "text": "A language model can request a tool with structured arguments. A server should validate parameters, enforce permissions, and handle tool errors before returning observations."
+  },
+  {
+    "title": "Context Window Budgeting",
+    "text": "A context budget divides limited model tokens among instructions, retrieved documents, conversation history, and tool output. Budget enforcement prevents context overflow."
+  },
+  {
+    "title": "Vector Similarity Search",
+    "text": "Vector search retrieves items based on nearby embedding vectors rather than exact keyword overlap. It can find semantic similarity but has different costs and failure modes from BM25."
+  },
+  {
+    "title": "Hybrid Keyword and Vector Retrieval",
+    "text": "Hybrid search combines lexical scores with semantic vector results. A fusion strategy can improve recall while retaining exact match behavior for important terms."
+  },
+  {
+    "title": "Text Embeddings",
+    "text": "An embedding model converts text into numeric vectors that encode semantic relationships. Similarity is commonly measured with cosine similarity or dot products."
+  },
+  {
+    "title": "Retrieval Augmented Generation",
+    "text": "Retrieval augmented generation supplies selected documents to a language model before answer generation. Source quality, ranking, and attribution affect answer reliability."
+  },
+  {
+    "title": "Model Evaluation",
+    "text": "Evaluating AI systems requires test cases, outcome criteria, and regression tracking. Tool correctness, latency, cost, and hallucination frequency all matter for production use."
+  },
+  {
+    "title": "Message Queues",
+    "text": "Queues decouple producers from workers and support asynchronous jobs. Delivery guarantees, idempotency, and retry handling determine whether work is safely repeated."
+  },
+  {
+    "title": "Data Pipeline Reliability",
+    "text": "Data ingestion pipelines extract, transform, and index records. Input validation, checkpointing, and reproducible builds reduce the risk of corrupt or incomplete search data."
+  },
+  {
+    "title": "Container Memory Limits",
+    "text": "Small hosted containers have strict memory ceilings. Lightweight indexes, single-worker services, and avoiding unused libraries can keep a distributed demo within a free tier."
+  },
+  {
+    "title": "Render Docker Deployment",
+    "text": "Render can build a Docker image from a GitHub branch and expose a public HTTPS web service. A cloud-specific Dockerfile can keep the original development stack unchanged."
+  }
+]

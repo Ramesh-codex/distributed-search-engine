@@ -1,0 +1,12 @@
+# One free public web service running three independent shard HTTP processes
+# and the search coordinator inside a single demo container.
+services:
+  - type: web
+    name: distributed-search-portfolio-demo
+    runtime: docker
+    plan: free
+    branch: deployment-demo
+    dockerfilePath: ./Dockerfile.render
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass

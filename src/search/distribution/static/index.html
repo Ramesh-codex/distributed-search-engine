@@ -2,187 +2,517 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>distributed-search-engine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#08101e">
+<meta name="description" content="Explore a real three-shard distributed search engine using a custom inverted index, BM25 ranking, and a FastAPI scatter-gather coordinator.">
+<title>Distributed Search · Live Engineering Demo</title>
 <style>
   :root {
-    color-scheme: light dark;
-    --fg: #1a1a1a;
-    --bg: #ffffff;
-    --muted: #666666;
-    --border: #dddddd;
-    --accent: #1a56db;
-    --warn-bg: #fff3cd;
-    --warn-fg: #7a4a00;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --fg: #e8e8e8; --bg: #121212; --muted: #999999; --border: #333333; --accent: #6ea8fe;
-      --warn-bg: #4a3900; --warn-fg: #ffdb70;
-    }
+    color-scheme: dark;
+    --bg: #08101e;
+    --panel: #101c2e;
+    --panel-2: #142238;
+    --line: #283b56;
+    --text: #eef5ff;
+    --subtle: #adc0d6;
+    --muted: #8c9fb7;
+    --accent: #80f0d0;
+    --blue: #94b7ff;
+    --warning: #ffcb82;
+    --danger: #ff9ba7;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
     margin: 0;
-    padding: 2rem 1rem 4rem;
-    background: var(--bg);
-    color: var(--fg);
-    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height: 100vh;
+    color: var(--text);
+    background:
+      radial-gradient(ellipse 600px 360px at 78% 3%, rgba(32, 90, 147, .20), transparent 75%),
+      radial-gradient(ellipse 550px 450px at 4% 26%, rgba(17, 125, 111, .12), transparent 75%),
+      var(--bg);
+    font-size: 15px;
+    line-height: 1.6;
   }
-  main { max-width: 640px; margin: 0 auto; }
-  h1 { font-size: 1.4rem; margin: 0 0 1rem; }
-  form { display: flex; gap: 0.5rem; }
-  input[type="search"] {
-    flex: 1;
-    padding: 0.6rem 0.8rem;
-    font-size: 1rem;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--bg);
-    color: var(--fg);
+  a { color: inherit; }
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
   }
-  button {
-    padding: 0.6rem 1.2rem;
-    font-size: 1rem;
-    border: none;
-    border-radius: 6px;
-    background: var(--accent);
-    color: #fff;
-    cursor: pointer;
+  button { font: inherit; cursor: pointer; }
+  button:disabled { cursor: wait; opacity: .7; }
+  .shell { width: min(1120px, calc(100% - 48px)); margin: auto; }
+  .topbar { border-bottom: 1px solid rgba(148,183,255,.12); }
+  .nav { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  .brand { display: flex; align-items: center; gap: 11px; text-decoration: none; font-size: 14px; font-weight: 800; letter-spacing: -.02em; }
+  .brand-mark {
+    width: 35px; height: 35px; display: grid; place-items: center; border-radius: 11px;
+    color: var(--bg); background: linear-gradient(145deg, #a1f9e1, #80aeff);
+    font-size: 16px; font-weight: 900; letter-spacing: -.08em;
   }
-  button:disabled { opacity: 0.6; cursor: default; }
-  #meta { color: var(--muted); font-size: 0.85rem; margin: 0.75rem 0; min-height: 1.2em; }
-  #degraded-banner {
-    display: none;
-    margin: 0.75rem 0;
-    padding: 0.6rem 0.9rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    background: var(--warn-bg);
-    color: var(--warn-fg);
+  .brand small { display: block; color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+  .nav-links { display: flex; align-items: center; gap: 24px; }
+  .nav-links a { color: var(--subtle); text-decoration: none; font-size: 13px; font-weight: 600; }
+  .nav-links a:hover, .footer a:hover { color: var(--accent); }
+  .outline-link { border: 1px solid var(--line); padding: 9px 15px; border-radius: 10px; }
+  .hero { display: grid; grid-template-columns: 1.16fr .84fr; align-items: center; gap: 54px; padding: 76px 0 62px; }
+  .eyebrow { display: flex; align-items: center; gap: 9px; color: var(--accent); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .16em; }
+  .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 15px rgba(128,240,208,.65); }
+  h1 { max-width: 620px; font-size: clamp(38px, 4.8vw, 63px); line-height: 1.09; letter-spacing: -.058em; margin: 18px 0 20px; font-weight: 850; }
+  .gradient-text { background: linear-gradient(90deg, #9df6df, #9ebcff); color: transparent; -webkit-background-clip: text; background-clip: text; }
+  .lede { color: var(--subtle); max-width: 530px; font-size: 16px; line-height: 1.75; margin: 0; }
+  .features { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 28px; }
+  .feature { background: rgba(148,183,255,.07); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: 12px; color: #c7d9ee; font-weight: 600; }
+  .diagram {
+    background: linear-gradient(155deg, rgba(22,40,63,.90), rgba(9,22,40,.93));
+    border: 1px solid #2f4963; box-shadow: 0 30px 60px rgba(0,0,0,.19), inset 0 1px rgba(255,255,255,.06);
+    border-radius: 20px; padding: 24px 24px 26px;
   }
-  #degraded-banner.visible { display: block; }
-  ol#results { list-style: none; margin: 0; padding: 0; }
-  li.result { padding: 0.9rem 0; border-bottom: 1px solid var(--border); }
-  li.result .title { font-size: 1.05rem; }
-  li.result .shard {
-    display: inline-block;
-    margin-left: 0.5rem;
-    padding: 0.1rem 0.5rem;
-    border-radius: 999px;
-    background: var(--border);
-    color: var(--muted);
-    font-size: 0.75rem;
-    vertical-align: middle;
+  .diagram-head { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 20px; }
+  .diagram-title { font-size: 12px; font-weight: 800; letter-spacing: .04em; }
+  .diagram-caption { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; }
+  .diagram-badge { border: 1px solid rgba(128,240,208,.28); color: var(--accent); background: rgba(128,240,208,.08); padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .coord { border: 1px solid #4b6b85; border-radius: 11px; padding: 12px 14px; text-align: center; background: #1a3048; }
+  .coord strong { font-size: 12px; display: block; font-weight: 800; }
+  .coord span { font-size: 11px; color: var(--subtle); }
+  .diagram-line { height: 32px; position: relative; width: 68%; margin: auto; border-bottom: 1px solid #42627b; }
+  .diagram-line::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px solid #42627b; }
+  .shards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .shard-box { border: 1px solid #304d66; border-radius: 10px; background: #13283d; text-align: center; padding: 12px 5px; position: relative; }
+  .shard-box::before { content: ""; position: absolute; height: 9px; width: 1px; background: #42627b; top: -10px; left: 50%; }
+  .shard-box strong { display: block; font-size: 11px; }
+  .shard-box span { display: block; font-size: 10px; color: #9db4ca; margin-top: 2px; }
+  .diagram-bottom { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; margin-top: 20px; }
+  .diagram-bottom .dot { background: var(--accent); width: 6px; height: 6px; border-radius: 50%; }
+  .search-section { padding-bottom: 90px; }
+  .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .section-heading h2 { font-size: 18px; letter-spacing: -.025em; margin: 0; }
+  .shortcut { color: var(--muted); font-size: 12px; }
+  kbd { font-family: inherit; border-radius: 5px; padding: 2px 6px; background: #1e2e44; border: 1px solid #38516f; color: #b9d2eb; font-size: 11px; }
+  .search-panel {
+    background: rgba(16,28,46,.94); border: 1px solid #34516c;
+    border-radius: 17px; padding: 18px; box-shadow: 0 14px 45px rgba(0,0,0,.13);
   }
-  li.result .score { color: var(--muted); font-size: 0.8rem; margin-left: 0.5rem; }
-  footer { color: var(--muted); font-size: 0.8rem; margin-top: 2rem; }
+  .search-form { display: flex; gap: 10px; align-items: stretch; }
+  .input-wrap { flex: 1; position: relative; min-width: 0; }
+  .search-icon { position: absolute; top: 50%; left: 17px; transform: translateY(-50%); color: #7d9cb8; pointer-events: none; }
+  .search-input {
+    width: 100%; height: 60px; border-radius: 11px; border: 1px solid #3d5975;
+    background: #091729; font-size: 16px; color: var(--text);
+    padding: 0 18px 0 52px; outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .search-input::placeholder { color: #8c9fb7; }
+  .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(128,240,208,.1); }
+  .search-submit { background: linear-gradient(120deg, #a3f8dd, #8dd3fc); color: #081628; border: none; border-radius: 10px; padding: 0 26px; font-weight: 800; min-width: 124px; }
+  .search-submit:hover { filter: brightness(1.06); }
+  .query-help { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 16px 3px 2px; }
+  .query-help > span { color: var(--muted); font-size: 12px; margin-right: 2px; }
+  .query-chip { color: #cce3f5; background: #182e45; border: 1px solid #38516c; font-size: 12px; padding: 6px 12px; border-radius: 999px; }
+  .query-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .workspace { display: grid; grid-template-columns: 260px minmax(0,1fr); gap: 22px; margin-top: 24px; align-items: start; }
+  .sidebar { display: grid; gap: 14px; }
+  .info-card, .results-card { background: rgba(16,28,46,.88); border: 1px solid var(--line); border-radius: 15px; }
+  .info-card { padding: 20px; }
+  .card-label { color: var(--muted); text-transform: uppercase; font-size: 10px; letter-spacing: .13em; font-weight: 800; }
+  .health-summary { display: flex; align-items: center; gap: 9px; margin-top: 13px; font-size: 13px; font-weight: 750; }
+  .state-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #7588a2; flex: none; }
+  .state-dot.closed { background: var(--accent); box-shadow: 0 0 10px rgba(128,240,208,.24); }
+  .state-dot.open, .state-dot.failed { background: var(--danger); }
+  .state-dot.half-open { background: var(--warning); }
+  .health-note { margin: 10px 0 16px; color: var(--muted); font-size: 11px; }
+  .shard-status-list { display: grid; gap: 11px; }
+  .shard-status { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; color: #d7e5f3; }
+  .shard-state-label { color: var(--muted); font-size: 11px; text-align: right; }
+  .shard-status-name { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .small-divider { height: 1px; background: var(--line); margin: 17px 0; }
+  .definition { font-size: 12px; color: var(--subtle); line-height: 1.7; margin: 12px 0 0; }
+  .tech { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 15px; }
+  .tech span { border: 1px solid #2d435c; border-radius: 7px; padding: 3px 7px; font-size: 10px; color: #bad0e4; }
+  .results-card { overflow: hidden; min-height: 360px; }
+  .results-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 19px 23px; border-bottom: 1px solid var(--line);
+  }
+  .results-header h3 { margin: 0; font-size: 14px; font-weight: 750; }
+  .result-meta { margin: 0; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; text-align: right; }
+  .notice { display: none; color: var(--warning); background: rgba(242,167,77,.08); border-bottom: 1px solid rgba(255,203,130,.22); padding: 13px 23px; font-size: 12px; }
+  .notice.visible { display: block; }
+  .notice.error { color: #ffc2c8; background: rgba(255,99,119,.07); }
+  .empty { min-height: 315px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 40px 25px; }
+  .empty-icon { width: 57px; height: 57px; border-radius: 15px; border: 1px solid #36536b; display: grid; place-items: center; font-size: 24px; background: #1b3046; color: var(--accent); margin: 0 auto 17px; }
+  .empty h4 { font-size: 18px; margin: 0 0 8px; letter-spacing: -.03em; }
+  .empty p { font-size: 13px; color: var(--muted); margin: 0 auto; max-width: 330px; }
+  .results-list { list-style: none; padding: 0; margin: 0; }
+  .result-item { padding: 20px 23px; border-bottom: 1px solid rgba(148,183,255,.12); }
+  .result-item:last-child { border-bottom: 0; }
+  .result-item:hover { background: rgba(148,183,255,.035); }
+  .result-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+  .result-title { margin: 0; font-size: 15px; line-height: 1.4; font-weight: 750; overflow-wrap: anywhere; }
+  .result-number { color: var(--accent); font-size: 12px; margin-right: 9px; font-variant-numeric: tabular-nums; }
+  .score { font-size: 11px; color: var(--subtle); border: 1px solid #334b64; border-radius: 6px; padding: 3px 7px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .result-detail { margin: 8px 0 0 24px; display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 11px; }
+  .result-detail .pill { background: rgba(128,240,208,.09); color: #a4efd9; border-radius: 5px; padding: 2px 8px; font-weight: 700; }
+  .results-foot { border-top: 1px solid var(--line); color: var(--muted); padding: 12px 23px; font-size: 11px; }
+  .footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; border-top: 1px solid rgba(148,183,255,.15); padding: 25px 0 35px; color: var(--muted); font-size: 12px; }
+  .footer a { color: #c5d8ee; text-decoration: none; margin-left: 16px; }
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; gap: 30px; padding: 55px 0 42px; }
+    .diagram { max-width: 530px; }
+    .workspace { grid-template-columns: 1fr; }
+    .sidebar { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 580px) {
+    .shell { width: min(100% - 28px, 1120px); }
+    .nav { min-height: 68px; }
+    .nav-links { gap: 12px; }
+    .nav-links a { font-size: 12px; }
+    .nav-links a:first-child { display: none; }
+    .hero { padding-top: 40px; }
+    h1 { font-size: 40px; }
+    .diagram { padding: 18px; }
+    .search-panel { padding: 12px; }
+    .search-form { flex-direction: column; }
+    .search-submit { min-height: 48px; width: 100%; }
+    .search-input { height: 56px; }
+    .sidebar { grid-template-columns: 1fr; }
+    .results-header { align-items: flex-start; flex-direction: column; gap: 4px; }
+    .result-meta { text-align: left; }
+    .shortcut { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
-<main>
-  <h1>distributed-search-engine</h1>
-  <form id="search-form">
-    <input type="search" id="q" name="q" placeholder="Search the corpus..." autofocus autocomplete="off">
-    <button type="submit">Search</button>
-  </form>
-  <div id="degraded-banner"></div>
-  <p id="meta"></p>
-  <ol id="results"></ol>
-  <footer id="corpus-info"></footer>
+<header class="topbar">
+  <nav class="shell nav" aria-label="Main navigation">
+    <a class="brand" href="/" aria-label="Distributed Search home">
+      <span class="brand-mark" aria-hidden="true">S/</span>
+      <span>Distributed Search<small>Engineering portfolio demo</small></span>
+    </a>
+    <div class="nav-links">
+      <a href="https://github.com/Ramesh-codex/distributed-search-engine/tree/deployment-demo" target="_blank" rel="noopener noreferrer">GitHub source ↗</a>
+      <a class="outline-link" href="/docs" target="_blank" rel="noopener noreferrer">API docs ↗</a>
+    </div>
+  </nav>
+</header>
+
+<main class="shell">
+  <section class="hero" aria-labelledby="hero-title">
+    <div>
+      <div class="eyebrow"><span class="dot"></span> Live distributed systems demo</div>
+      <h1 id="hero-title">Search, engineered <span class="gradient-text">from the ground up.</span></h1>
+      <p class="lede">A working search engine with a custom inverted index, BM25 relevance ranking, and parallel scatter-gather queries across three HTTP shard services.</p>
+      <div class="features" aria-label="Technical features">
+        <span class="feature">3 HTTP shards</span>
+        <span class="feature">BM25 ranking</span>
+        <span class="feature">Circuit breakers</span>
+        <span class="feature">FastAPI + Docker</span>
+      </div>
+    </div>
+    <div class="diagram" role="img" aria-label="A coordinator fans out searches over HTTP to three separate shard processes and merges their BM25 results.">
+      <div class="diagram-head"><div><div class="diagram-caption">Query execution</div><div class="diagram-title">Scatter → gather → rank</div></div><span class="diagram-badge">HTTP fanout</span></div>
+      <div class="coord"><strong>FastAPI Coordinator</strong><span>Parallel requests · top-K merge</span></div>
+      <div class="diagram-line"></div>
+      <div class="shards">
+        <div class="shard-box"><strong>Shard 01</strong><span>BM25 + index</span></div>
+        <div class="shard-box"><strong>Shard 02</strong><span>BM25 + index</span></div>
+        <div class="shard-box"><strong>Shard 03</strong><span>BM25 + index</span></div>
+      </div>
+      <div class="diagram-bottom"><span class="dot"></span><span>Real HTTP requests between separate processes · co-located on one free instance</span></div>
+    </div>
+  </section>
+
+  <section class="search-section" aria-labelledby="search-heading">
+    <div class="section-heading">
+      <h2 id="search-heading">Try the search engine</h2>
+      <span class="shortcut">Focus search <kbd>/</kbd> or <kbd>Ctrl</kbd> + <kbd>K</kbd></span>
+    </div>
+    <div class="search-panel">
+      <form class="search-form" id="search-form" role="search">
+        <label class="input-wrap" for="q">
+          <span class="search-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+          </span>
+          <input class="search-input" type="search" id="q" name="q" maxlength="200" autocomplete="off" placeholder="Search for concepts, systems, or techniques…" aria-label="Search technical documents" required>
+        </label>
+        <button class="search-submit" id="search-button" type="submit">Search →</button>
+      </form>
+      <div class="query-help" aria-label="Example searches">
+        <span>Try an example:</span>
+        <button type="button" class="query-chip" data-query="circuit breaker">Circuit breaker</button>
+        <button type="button" class="query-chip" data-query="BM25 ranking">BM25 ranking</button>
+        <button type="button" class="query-chip" data-query="vector search">Vector search</button>
+        <button type="button" class="query-chip" data-query="distributed systems">Distributed systems</button>
+      </div>
+    </div>
+
+    <div class="workspace">
+      <aside class="sidebar" aria-label="System details">
+        <section class="info-card">
+          <div class="card-label">Cluster telemetry</div>
+          <div class="health-summary" aria-live="polite"><span class="state-dot" id="cluster-dot"></span><span id="cluster-state">Checking shard circuits…</span></div>
+          <p class="health-note" id="health-note">Circuit status is not a substitute for a live query.</p>
+          <div class="small-divider"></div>
+          <div class="shard-status-list" id="shard-status-list">
+            <div class="shard-status"><span class="shard-status-name"><span class="state-dot"></span>Shard 01</span><span class="shard-state-label">Checking</span></div>
+            <div class="shard-status"><span class="shard-status-name"><span class="state-dot"></span>Shard 02</span><span class="shard-state-label">Checking</span></div>
+            <div class="shard-status"><span class="shard-status-name"><span class="state-dot"></span>Shard 03</span><span class="shard-state-label">Checking</span></div>
+          </div>
+        </section>
+        <section class="info-card">
+          <div class="card-label">About this demo</div>
+          <p class="definition"><strong>48 curated technical documents</strong> in a small, immutable demo index. The original project benchmarks use a much larger Wikipedia corpus and are not measurements of this hosting environment.</p>
+          <div class="tech"><span>Python</span><span>FastAPI</span><span>BM25</span><span>Docker</span><span>Render Free</span></div>
+        </section>
+      </aside>
+
+      <section class="results-card" aria-labelledby="results-heading">
+        <div class="results-header">
+          <h3 id="results-heading">Search results</h3>
+          <p class="result-meta" id="meta" role="status" aria-live="polite">Awaiting your first query</p>
+        </div>
+        <div class="notice" id="degraded-banner" role="alert"></div>
+        <div id="result-content">
+          <div class="empty" id="empty-state">
+            <div><div class="empty-icon" aria-hidden="true">⌕</div><h4>Explore what's under the hood</h4><p>Search the demo corpus to see relevance scores, the responding shard, and distributed query latency.</p></div>
+          </div>
+        </div>
+        <div class="results-foot">Scores are relative BM25 relevance values. Latency shown is server-side and will vary by query.</div>
+      </section>
+    </div>
+  </section>
 </main>
 
+<footer class="shell footer">
+  <span>Built from scratch · Hosted demo with 3 co-located shard processes</span>
+  <span><a href="https://github.com/Ramesh-codex/distributed-search-engine/tree/deployment-demo" target="_blank" rel="noopener noreferrer">Source code ↗</a><a href="/docs" target="_blank" rel="noopener noreferrer">Explore API ↗</a></span>
+</footer>
+
 <script>
+"use strict";
 const form = document.getElementById("search-form");
 const input = document.getElementById("q");
+const submitButton = document.getElementById("search-button");
 const meta = document.getElementById("meta");
 const banner = document.getElementById("degraded-banner");
-const results = document.getElementById("results");
-const corpusInfo = document.getElementById("corpus-info");
+const resultContent = document.getElementById("result-content");
+const clusterDot = document.getElementById("cluster-dot");
+const clusterState = document.getElementById("cluster-state");
+const healthNote = document.getElementById("health-note");
+const statusList = document.getElementById("shard-status-list");
+let shardUrls = [];
+let mostRecentFailed = [];
+let hasRunQuery = false;
+let inFlight = null;
 
-function shardLabel(shardUrl) {
-  try {
-    return new URL(shardUrl).host;
-  } catch (e) {
-    return shardUrl;
-  }
+function shardLabel(url) {
+  const position = shardUrls.indexOf(url);
+  return position >= 0 ? "Shard " + String(position + 1).padStart(2, "0") : "Shard";
+}
+
+function showNotice(text, isError) {
+  banner.textContent = text;
+  banner.className = "notice" + (text ? " visible" : "") + (isError ? " error" : "");
+}
+
+function createEmpty(heading, description, glyph) {
+  const box = document.createElement("div");
+  box.className = "empty";
+  const inner = document.createElement("div");
+  const symbol = document.createElement("div");
+  symbol.className = "empty-icon";
+  symbol.setAttribute("aria-hidden", "true");
+  symbol.textContent = glyph;
+  const title = document.createElement("h4");
+  title.textContent = heading;
+  const message = document.createElement("p");
+  message.textContent = description;
+  inner.append(symbol, title, message);
+  box.appendChild(inner);
+  resultContent.replaceChildren(box);
+}
+
+function renderShardStatus(urls, breakers) {
+  shardUrls = urls;
+  statusList.replaceChildren();
+  urls.forEach(function(url, index) {
+    const breaker = breakers[url] || {};
+    const failed = mostRecentFailed.includes(url);
+    const state = failed ? "failed" : (breaker.state || "unknown");
+    const display = failed ? "No response" :
+      state === "closed" ? "Circuit closed" :
+      state === "half-open" ? "Circuit probing" :
+      state === "open" ? "Circuit open" : "Unknown";
+    const line = document.createElement("div");
+    line.className = "shard-status";
+    const name = document.createElement("span");
+    name.className = "shard-status-name";
+    const dot = document.createElement("span");
+    dot.className = "state-dot " + state;
+    dot.setAttribute("aria-hidden", "true");
+    name.append(dot, document.createTextNode("Shard " + String(index + 1).padStart(2, "0")));
+    const stateText = document.createElement("span");
+    stateText.className = "shard-state-label";
+    stateText.textContent = display;
+    line.append(name, stateText);
+    statusList.appendChild(line);
+  });
+  const allClosed = urls.length === 3 && urls.every(function(url) {
+    return breakers[url] && breakers[url].state === "closed";
+  });
+  const allAnswered = hasRunQuery && mostRecentFailed.length === 0;
+  clusterDot.className = "state-dot " + (allClosed && (!hasRunQuery || allAnswered) ? "closed" : "half-open");
+  clusterState.textContent = !urls.length ? "No shards configured" :
+    !allClosed ? "Shard circuits need attention" :
+    allAnswered ? "3 / 3 shards answered" : "3 shards configured";
+  healthNote.textContent = allAnswered ? "Latest search returned results from every shard." :
+    "Circuit closed means requests are allowed, not that a shard was just queried.";
 }
 
 async function loadStats() {
   try {
-    const res = await fetch("/stats");
-    if (!res.ok) return;
-    const s = await res.json();
-    const shards = s.shard_urls.map((url) => {
-      const breaker = s.breakers[url];
-      const label = shardLabel(url);
-      return breaker.state === "closed" ? label : `${label} (${breaker.state})`;
-    });
-    corpusInfo.textContent = `${s.shard_urls.length} shards: ${shards.join(", ")}`;
-  } catch (e) {
-    // Stats are a nice-to-have footer, not worth failing the page over.
+    const response = await fetch("/stats", { cache: "no-store" });
+    if (!response.ok) throw new Error("Stats status " + response.status);
+    const stats = await response.json();
+    if (!Array.isArray(stats.shard_urls) || !stats.breakers) throw new Error("Invalid stats");
+    renderShardStatus(stats.shard_urls, stats.breakers);
+  } catch (_error) {
+    clusterDot.className = "state-dot";
+    clusterState.textContent = "Telemetry unavailable";
+    healthNote.textContent = "Search can still work; the stats endpoint did not respond.";
   }
 }
 
 function renderResults(data) {
-  results.innerHTML = "";
+  const count = data.results.length;
+  const elapsed = Number(data.elapsed_ms);
+  meta.textContent = count + " result" + (count === 1 ? "" : "s") +
+    " · " + data.shards_queried + "/3 shards answered" +
+    (Number.isFinite(elapsed) ? " · " + elapsed.toFixed(1) + " ms server" : "");
 
-  const resultWord = data.results.length === 1 ? "result" : "results";
-  const shardWord = data.shards_queried === 1 ? "shard" : "shards";
-  meta.textContent =
-    `${data.results.length} ${resultWord} from ${data.shards_queried} ${shardWord} in ${data.elapsed_ms}ms`;
-
+  mostRecentFailed = Array.isArray(data.shards_failed) ? data.shards_failed : [];
+  hasRunQuery = true;
   if (data.degraded) {
-    const failedWord = data.shards_failed.length === 1 ? "shard" : "shards";
-    banner.textContent =
-      `⚠ Degraded: ${data.shards_failed.length} ${failedWord} unavailable ` +
-      `(${data.shards_failed.map(shardLabel).join(", ")}) — results are partial.`;
-    banner.classList.add("visible");
+    showNotice("Partial search: " + mostRecentFailed.length +
+      " shard(s) unavailable. Results may be incomplete.", false);
   } else {
-    banner.classList.remove("visible");
+    showNotice("", false);
   }
 
-  if (data.results.length === 0) {
-    results.innerHTML = "<li class='result'>No results.</li>";
+  if (!count) {
+    createEmpty(
+      data.degraded ? "No matches from available shards" : "No matching documents",
+      data.degraded ? "Some shards did not respond. Try again for a complete search." :
+        "Try a broader term or one of the suggested searches above.",
+      "∅"
+    );
     return;
   }
 
-  for (const r of data.results) {
+  const list = document.createElement("ol");
+  list.className = "results-list";
+  list.id = "results";
+  data.results.forEach(function(result, index) {
     const li = document.createElement("li");
-    li.className = "result";
-    const title = document.createElement("span");
-    title.className = "title";
-    title.textContent = r.title || `(untitled, doc ${r.doc_id})`;
-    const shard = document.createElement("span");
-    shard.className = "shard";
-    shard.textContent = shardLabel(r.shard);
+    li.className = "result-item";
+    const top = document.createElement("div");
+    top.className = "result-top";
+    const title = document.createElement("h4");
+    title.className = "result-title";
+    const rank = document.createElement("span");
+    rank.className = "result-number";
+    rank.textContent = String(index + 1).padStart(2, "0");
+    title.append(rank, document.createTextNode(result.title || "Untitled document"));
     const score = document.createElement("span");
     score.className = "score";
-    score.textContent = `score ${r.score}`;
-    li.append(title, shard, score);
-    results.appendChild(li);
+    const value = Number(result.score);
+    score.textContent = "BM25 " + (Number.isFinite(value) ? value.toFixed(3) : "—");
+    top.append(title, score);
+
+    const detail = document.createElement("div");
+    detail.className = "result-detail";
+    const shard = document.createElement("span");
+    shard.className = "pill";
+    shard.textContent = shardLabel(result.shard);
+    const id = document.createElement("span");
+    id.textContent = "Document #" + result.doc_id;
+    detail.append(shard, id);
+    li.append(top, detail);
+    list.appendChild(li);
+  });
+  resultContent.replaceChildren(list);
+}
+
+async function runSearch(query) {
+  const q = query.trim();
+  if (!q) {
+    input.focus();
+    return;
+  }
+  if (inFlight) inFlight.abort();
+  const controller = new AbortController();
+  inFlight = controller;
+  submitButton.disabled = true;
+  submitButton.textContent = "Searching…";
+  meta.textContent = "Querying the shards…";
+  showNotice("", false);
+  createEmpty("Searching across three shards", "Collecting and merging ranked results.", "⌕");
+  const slowHint = setTimeout(function() {
+    if (inFlight === controller) {
+      meta.textContent = "Still connecting…";
+      showNotice("Free hosting can take a little longer to wake after inactivity.", false);
+    }
+  }, 8000);
+  try {
+    const response = await fetch("/search?" + new URLSearchParams({ q: q, k: "10" }), {
+      signal: controller.signal
+    });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const payload = await response.json();
+    if (!Array.isArray(payload.results)) throw new Error("Invalid search response");
+    if (inFlight !== controller) return;
+    renderResults(payload);
+    loadStats();
+  } catch (error) {
+    if (error.name === "AbortError" || inFlight !== controller) return;
+    meta.textContent = "Search unavailable";
+    showNotice("Search request failed. Please retry in a moment (" + error.message + ").", true);
+    createEmpty("Couldn't complete this search", "The service may be waking up or temporarily unavailable. Your query is still in the search field.", "!");
+  } finally {
+    clearTimeout(slowHint);
+    if (inFlight === controller) {
+      inFlight = null;
+      submitButton.disabled = false;
+      submitButton.textContent = "Search →";
+    }
   }
 }
 
-form.addEventListener("submit", async (event) => {
+form.addEventListener("submit", function(event) {
   event.preventDefault();
-  const q = input.value.trim();
-  if (!q) return;
+  runSearch(input.value);
+});
 
-  meta.textContent = "Searching...";
-  banner.classList.remove("visible");
-  results.innerHTML = "";
+document.querySelectorAll("[data-query]").forEach(function(button) {
+  button.addEventListener("click", function() {
+    input.value = button.dataset.query;
+    runSearch(input.value);
+  });
+});
 
-  try {
-    const res = await fetch(`/search?q=${encodeURIComponent(q)}&k=10`);
-    if (!res.ok) {
-      meta.textContent = `Search failed (${res.status})`;
-      return;
-    }
-    renderResults(await res.json());
-  } catch (e) {
-    meta.textContent = "Search failed: could not reach the server.";
+document.addEventListener("keydown", function(event) {
+  const target = event.target;
+  const typing = target && (target.isContentEditable ||
+    /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
+  if ((event.key === "/" && !typing) ||
+      ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k")) {
+    event.preventDefault();
+    input.focus();
+    input.select();
   }
+  if (event.key === "Escape" && document.activeElement === input) input.blur();
 });
 
 loadStats();

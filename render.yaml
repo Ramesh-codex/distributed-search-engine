@@ -1,12 +1,16 @@
-# One free public web service running three independent shard HTTP processes
-# and the search coordinator inside a single demo container.
+# Branch-scoped configuration for the existing "developer-docs-search" Blueprint.
+# This Blueprint was initially created with the default path, render.yaml.
+# Keep the original logical name so Render can reconcile its existing
+# suffixed resource without intentionally adding a third web service.
+# The stable "distributed-search-portfolio-demo" Blueprint still reads
+# render.yaml from the separate deployment-demo branch and is unchanged.
 services:
   - type: web
     name: distributed-search-portfolio-demo
     runtime: docker
     plan: free
-    branch: deployment-demo
-    dockerfilePath: ./Dockerfile.render
+    branch: developer-docs-search
+    dockerfilePath: ./Dockerfile.docs
     dockerContext: .
     healthCheckPath: /health
     autoDeployTrigger: checksPass

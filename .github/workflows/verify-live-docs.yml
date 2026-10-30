@@ -1,0 +1,72 @@
+name: Verify public Developer Docs Search
+
+on:
+  push:
+    branches: [developer-docs-search]
+    paths:
+      - .github/workflows/verify-live-docs.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-public-search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify actual public HTTPS app and three-shard search
+        run: |
+          python - <<'PY'
+          import json
+          import time
+          import urllib.parse
+          import urllib.request
+          import urllib.error
+
+          BASE = "https://distributed-search-portfolio-demo-rvv6.onrender.com"
+          def get(path, timeout=10):
+              with urllib.request.urlopen(BASE + path, timeout=timeout) as r:
+                  assert r.status == 200, (path, r.status)
+                  return r.read()
+
+          deadline = time.monotonic() + 220
+          while True:
+              try:
+                  assert json.loads(get("/health")) == {"status": "ok"}
+                  break
+              except (urllib.error.URLError, TimeoutError, AssertionError):
+                  if time.monotonic() >= deadline:
+                      raise
+                  time.sleep(4)
+
+          html = get("/").decode("utf-8")
+          assert "DevDocs Search" in html, "Wrong application served"
+
+          stats = json.loads(get("/stats"))
+          assert stats["document_count"] == 188, stats
+          assert stats["source_pages"] == 20, stats
+          assert stats["source_counts"] == {
+              "FastAPI": 86, "HTTPX": 54, "Docker": 48
+          }, stats
+          assert len(stats["shard_urls"]) == 3, stats
+
+          for q, source, hostname in [
+              ("dependency", "FastAPI", "fastapi.tiangolo.com"),
+              ("timeout", "HTTPX", "www.python-httpx.org"),
+              ("Dockerfile", "Docker", "docs.docker.com"),
+          ]:
+              params = urllib.parse.urlencode({"q": q, "source": source, "k": 5})
+              response = json.loads(get("/search?" + params, timeout=15))
+              assert response["results"], response
+              assert response["shards_queried"] == 3, response
+              assert not response["degraded"], response
+              assert response["shards_failed"] == [], response
+              for result in response["results"]:
+                  assert result["source"] == source, result
+                  assert hostname in result["url"], result
+                  assert result["score"] > 0 and result["snippet"], result
+              print(f"PASS {source}: {len(response['results'])} hits, 3 shards, official URLs")
+
+          print("PASS: public DevDocs HTML, health, metadata, source filters and live distributed search")
+          PY

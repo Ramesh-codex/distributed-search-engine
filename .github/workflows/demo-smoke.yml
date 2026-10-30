@@ -25,6 +25,8 @@ jobs:
         run: python -m compileall -q src demo
       - name: Check interactive UI contract and JavaScript syntax
         run: python demo/check_ui.py
+      - name: Test browser-side search interactions with a mocked DOM
+        run: node demo/test_ui_interactions.cjs
       - name: Build indexes and test real HTTP cluster
         env:
           PYTHONPATH: src

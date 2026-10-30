@@ -7,6 +7,14 @@ tokenizer, inverted index, BM25 ranker, and the crawler that feeds them are
 hand-written, not assembled from a library that does the information-retrieval
 thinking for you. See [CLAUDE.md](CLAUDE.md) for the full constraint set.
 
+## Live demo (Render Free)
+
+**[Launch the three-shard search engine](https://distributed-search-portfolio-demo.onrender.com/)** · [Try the API](https://distributed-search-portfolio-demo.onrender.com/docs) · [Deployment guide](docs/DEPLOY_DEMO.md) · [Public HTTPS verification](https://github.com/Ramesh-codex/distributed-search-engine/actions/runs/41036517676)
+
+Try queries such as **`circuit breaker`**, **`BM25 ranking`**, and **`vector search`**. The demo uses the original FastAPI coordinator and three independent shard HTTP processes, the custom inverted index and BM25 scoring, and the existing search UI. Endpoints: [`/search?q=circuit%20breaker`](https://distributed-search-portfolio-demo.onrender.com/search?q=circuit%20breaker), [`/stats`](https://distributed-search-portfolio-demo.onrender.com/stats), [`/health`](https://distributed-search-portfolio-demo.onrender.com/health).
+
+**Scope and limits:** The hosted demo uses a small, deterministic **48-document original technical glossary** baked into the image to minimize hosting costs. The three shard processes run inside **one free Render instance**, communicating over HTTP; they are not separate cloud machines. The larger Wikipedia-corpus benchmarks documented below were run separately and **are not measurements of this hosted demo**. The free service may spin down with inactivity, causing a slow first request. CI builds the Docker image and tests its HTTP endpoints, and a separate GitHub Actions run [verified the public HTTPS application](https://github.com/Ramesh-codex/distributed-search-engine/actions/runs/41036517676).
+
 ## Architecture
 
 ```mermaid

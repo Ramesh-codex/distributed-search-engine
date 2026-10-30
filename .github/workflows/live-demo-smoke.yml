@@ -1,0 +1,26 @@
+name: Verify public Render demo
+
+on:
+  push:
+    branches: [deployment-demo]
+    paths:
+      - .github/workflows/live-demo-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-live-demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check real public Render URL and all three shards
+        run: |
+          python demo/verify_http.py \
+            --url https://distributed-search-portfolio-demo.onrender.com \
+            --wait 180
